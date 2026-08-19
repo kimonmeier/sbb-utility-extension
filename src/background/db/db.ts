@@ -16,12 +16,6 @@ const client = new SQLocalDrizzle("sbb-utility.sqlite");
 // 3. Connect Drizzle via the proxy driver
 const db = drizzle(client.driver, client.batchDriver);
 
-type MigrationEntry = {
-  id: number;
-  drizzle_tag: string;
-  created_at: number;
-};
-
 export async function initDatabaseAndMigrate() {
   console.log("Initializing database and applying migrations...");
   console.log("Following files were found", migrationFiles);
