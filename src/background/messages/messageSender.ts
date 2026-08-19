@@ -1,4 +1,8 @@
-import type { MessageRegistry, MessageType } from "./messages";
+import {
+  MessageTargets,
+  type MessageRegistry,
+  type MessageType,
+} from "./messages";
 
 export async function sendOffscreenMessage<T extends MessageType>(
   type: T,
@@ -9,7 +13,7 @@ export async function sendOffscreenMessage<T extends MessageType>(
   const payload = args[0];
 
   return await chrome.runtime.sendMessage({
-    target: "offscreen",
+    target: MessageTargets.OFFSCREEN,
     type,
     payload,
   });

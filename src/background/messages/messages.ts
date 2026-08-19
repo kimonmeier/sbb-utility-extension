@@ -6,4 +6,8 @@ export type MessageRegistry = {
   };
 };
 
+export enum MessageTargets {
+  OFFSCREEN = "offscreen",
+}
+
 export type MessageType = keyof MessageRegistry;

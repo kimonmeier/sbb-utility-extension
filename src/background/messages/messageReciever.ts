@@ -1,4 +1,8 @@
-import type { MessageRegistry, MessageType } from "./messages";
+import {
+  MessageTargets,
+  type MessageRegistry,
+  type MessageType,
+} from "./messages";
 
 // Defines an object where the keys are MessageTypes and the values are functions
 // that take the correct payload and return the correct Promise response.
@@ -10,8 +14,9 @@ type OffscreenHandlers = {
 
 export function createOffscreenListener(handlers: Partial<OffscreenHandlers>) {
   chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    // Ignore messages not meant for this document
-    if (message.target !== "offscreen") return false;
+    if (message.target !== MessageTargets.OFFSCREEN) {
+      return false;
+    }
 
     const handler = handlers[message.type as MessageType];
 
