@@ -8,9 +8,12 @@
 	// Pages
 	import HomePage from "./lib/pages/HomePage.svelte";
 	import SettingsPage from "./lib/pages/SettingsPage.svelte";
+	import { initDatabaseAndMigrate } from "./background/db/db";
 
-	onMount(() => {
+	onMount(async () => {
 		initializeTheme();
+
+		await initDatabaseAndMigrate();
 	});
 </script>
 
