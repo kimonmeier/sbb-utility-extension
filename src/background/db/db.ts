@@ -2,6 +2,7 @@ import { sql } from "drizzle-orm";
 import { SQLocalDrizzle } from "sqlocal/drizzle";
 import { drizzle } from "drizzle-orm/sqlite-proxy";
 import journal from "./migrations/meta/_journal.json";
+import * as schema from "./schema";
 
 // 1. Vite inlines all .sql files as strings at build time
 const migrationFiles = import.meta.glob("./migrations/*.sql", {
@@ -14,7 +15,10 @@ const migrationFiles = import.meta.glob("./migrations/*.sql", {
 const client = new SQLocalDrizzle("sbb-utility.sqlite");
 
 // 3. Connect Drizzle via the proxy driver
-const db = drizzle(client.driver, client.batchDriver);
+export const db = drizzle(client.driver, client.batchDriver, {
+  logger: true,
+  schema
+});
 
 export async function initDatabaseAndMigrate() {
   console.log("Initializing database and applying migrations...");

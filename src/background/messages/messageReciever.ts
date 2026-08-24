@@ -2,19 +2,44 @@ import {
   MessageTargets,
   type MessageRegistry,
   type MessageType,
+  type OffscreenMessageRegistry,
+  type WorkerMessageRegistry,
 } from "./messages";
 
 // Defines an object where the keys are MessageTypes and the values are functions
 // that take the correct payload and return the correct Promise response.
-type OffscreenHandlers = {
+type GenericHandlers = {
   [K in MessageType]: (
     payload: MessageRegistry[K]["payload"],
   ) => Promise<MessageRegistry[K]["response"]>;
 };
 
+type OffscreenHandlers = {
+  [K in MessageType]: (
+    payload: OffscreenMessageRegistry[K]["payload"],
+  ) => Promise<OffscreenMessageRegistry[K]["response"]>;
+};
+
+type WorkerHandlers = {
+  [K in MessageType]: (
+    payload: WorkerMessageRegistry[K]["payload"],
+  ) => Promise<WorkerMessageRegistry[K]["response"]>;
+};
+
 export function createOffscreenListener(handlers: Partial<OffscreenHandlers>) {
+  return createGenericListener(handlers, MessageTargets.OFFSCREEN);
+}
+
+export function createWorkerListener(handlers: Partial<WorkerHandlers>) {
+  return createGenericListener(handlers, MessageTargets.WORKER);
+}
+
+function createGenericListener(
+  handlers: Partial<GenericHandlers>,
+  target: MessageTargets,
+) {
   chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    if (message.target !== MessageTargets.OFFSCREEN) {
+    if (message.target !== target) {
       return false;
     }
 

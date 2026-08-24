@@ -1,4 +1,11 @@
+import { createWorkerListener } from "./messages/messageReciever";
 import { sendOffscreenMessage } from "./messages/messageSender";
+
+const TARGET_URLS = [
+  "https://sopreweb-tourenplan-api.app.sbb.ch/mitarbeiter/check*",
+];
+
+let currentToken: string | null = null;
 
 // Ensure only one offscreen document exists
 async function setupOffscreenDocument() {
@@ -17,11 +24,45 @@ async function setupOffscreenDocument() {
   });
 }
 
-// Example: Trigger the database init when the extension starts
 chrome.runtime.onInstalled.addListener(async () => {
   await setupOffscreenDocument();
 
   const initResult = await sendOffscreenMessage("INIT_DB");
 
+  createWorkerListener({
+    SYNC_API_WORKER: async () => {
+      if (!currentToken) {
+        return { success: false, error: "Es wurde kein Token gefunden!" };
+      }
+
+      return await sendOffscreenMessage("SYNC_API", {
+        api_token: currentToken,
+      });
+    },
+  });
+
   console.log("Database initialized in offscreen document:", initResult);
 });
+/*
+chrome.webRequest.onBeforeSendHeaders.addListener(
+  (details) => {
+    if (!details.requestHeaders) {
+      return;
+    }
+
+    for (let header of details.requestHeaders) {
+      if (header.name.toLowerCase() === "authorization") {
+        const authValue = header.value!;
+
+        if (authValue.toLowerCase().startsWith("bearer ")) {
+          const token = authValue.substring(7);
+          currentToken = token;
+          break;
+        }
+      }
+    }
+    return { requestHeaders: details.requestHeaders };
+  },
+  { urls: TARGET_URLS },
+  ["requestHeaders"],
+);*/

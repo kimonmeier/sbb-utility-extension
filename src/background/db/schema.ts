@@ -1,4 +1,3 @@
-import { sql } from "drizzle-orm";
 import type { SopreDepot, SopreTourType } from "../api/types/sopretypes";
 import { integer, sqliteTable, text, unique } from "drizzle-orm/sqlite-core";
 
