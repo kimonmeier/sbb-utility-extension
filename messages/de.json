@@ -1,0 +1,36 @@
+{
+  "$schema": "https://inlang.com/schema/inlang-message-format",
+  "nav_home": "Home",
+  "nav_employees": "Mitarbeiter",
+  "nav_settings": "Einstellungen",
+
+  "settings_title": "Einstellungen",
+  "settings_subtitle": "Passen Sie die Einstellungen der Erweiterung an",
+  "settings_appearance": "Erscheinungsbild",
+  "settings_theme": "Design",
+  "settings_current_theme": "Aktuelles Design: {theme}",
+  "settings_language": "Sprache",
+  "language_de": "Deutsch",
+  "language_it": "Italienisch",
+
+  "employee_page_title": "Mitarbeiter",
+  "employee_table_name": "Name",
+  "employee_table_id": "Mitarbeiter-ID",
+  "employee_table_actions": "Aktionen",
+  "employee_form_legend": "Mitarbeiter erfassen",
+  "employee_form_name_label": "Name",
+  "employee_form_id_label": "Mitarbeiter-ID",
+  "employee_form_submit": "Mitarbeiter erfassen",
+  "employee_error_fetch": "Fehler beim Abrufen der Mitarbeiter: {error}",
+  "employee_error_delete": "Fehler beim Löschen des Mitarbeiters: {error}",
+  "employee_error_missing_fields": "Bitte Name und Mitarbeiter-ID ausfüllen.",
+  "employee_error_invalid_id": "Mitarbeiter-ID muss mit 'E' oder 'U' beginnen, gefolgt von 6 Ziffern.",
+  "employee_error_create": "Fehler beim Erstellen des Mitarbeiters: {error}",
+
+  "sync_title": "Daten synchronisieren",
+  "sync_description": "Hiermit können die Daten synchronisiert werden",
+  "sync_loading": "Synchronisation läuft...",
+  "sync_success": "Synchronisation erfolgreich!",
+  "sync_start": "Synchronisation starten",
+  "sync_error": "Fehler: {error}"
+}

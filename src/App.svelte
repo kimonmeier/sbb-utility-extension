@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onDestroy, onMount } from "svelte";
 	import { theme, initializeTheme } from "./lib/stores/theme";
+	import { locale } from "./lib/stores/locale";
 	import { currentPage } from "./lib/stores/navigation";
 
 	import Nav from "./lib/components/Nav.svelte";
@@ -39,6 +40,7 @@
 </script>
 
 <div class="h-screen bg-base-300" data-theme={$theme}>
+	{#key $locale}
 	<div class="flex flex-col h-full">
 		<main class="flex-1 p-4 pb-20 overflow-y-auto">
 			<!-- Page Content -->
@@ -57,4 +59,5 @@
 		<Nav />
 		<AlertManager />
 	</div>
+	{/key}
 </div>

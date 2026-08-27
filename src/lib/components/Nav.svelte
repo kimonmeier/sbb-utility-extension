@@ -2,10 +2,6 @@
 	import { MENU_ITEMS } from "../constants/menu";
 	import { currentPage } from "../stores/navigation";
 	import Icon from "./Icon.svelte";
-
-	function getPageForMenuItem(label: string): string {
-		return label.toLowerCase();
-	}
 </script>
 
 <aside
@@ -13,15 +9,15 @@
 >
 	<nav class="flex flex-row gap-4 justify-center">
 		{#each MENU_ITEMS as item}
-			{@const isActive = getPageForMenuItem(item.label) === $currentPage}
+			{@const isActive = item.page === $currentPage}
 			<button
 				class="btn btn-ghost btn-square {isActive ? 'btn-active' : ''}"
 				onclick={item.action}
-				aria-label={item.label}
+				aria-label={item.label()}
 				aria-current={isActive ? "page" : undefined}
 			>
 				<Icon icon={item.icon} size={24} class="text-current" />
-				<span class="sr-only">{item.label}</span>
+				<span class="sr-only">{item.label()}</span>
 			</button>
 		{/each}
 	</nav>

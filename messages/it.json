@@ -1,0 +1,36 @@
+{
+  "$schema": "https://inlang.com/schema/inlang-message-format",
+  "nav_home": "Home",
+  "nav_employees": "Dipendenti",
+  "nav_settings": "Impostazioni",
+
+  "settings_title": "Impostazioni",
+  "settings_subtitle": "Personalizza le preferenze dell'estensione",
+  "settings_appearance": "Aspetto",
+  "settings_theme": "Tema",
+  "settings_current_theme": "Tema attuale: {theme}",
+  "settings_language": "Lingua",
+  "language_de": "Tedesco",
+  "language_it": "Italiano",
+
+  "employee_page_title": "Dipendenti",
+  "employee_table_name": "Nome",
+  "employee_table_id": "ID dipendente",
+  "employee_table_actions": "Azioni",
+  "employee_form_legend": "Registra dipendente",
+  "employee_form_name_label": "Nome",
+  "employee_form_id_label": "ID dipendente",
+  "employee_form_submit": "Registra dipendente",
+  "employee_error_fetch": "Errore durante il recupero dei dipendenti: {error}",
+  "employee_error_delete": "Errore durante l'eliminazione del dipendente: {error}",
+  "employee_error_missing_fields": "Si prega di compilare nome e ID dipendente.",
+  "employee_error_invalid_id": "L'ID dipendente deve iniziare con 'E' o 'U', seguito da 6 cifre.",
+  "employee_error_create": "Errore durante la creazione del dipendente: {error}",
+
+  "sync_title": "Sincronizza dati",
+  "sync_description": "Qui è possibile sincronizzare i dati",
+  "sync_loading": "Sincronizzazione in corso...",
+  "sync_success": "Sincronizzazione riuscita!",
+  "sync_start": "Avvia sincronizzazione",
+  "sync_error": "Errore: {error}"
+}
