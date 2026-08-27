@@ -4,6 +4,10 @@
 	import Icon from "../components/Icon.svelte";
 	import { Trash } from "@lucide/svelte";
 	import { alertQueue } from "../stores/alert";
+	import Input from "../components/ui/Input.svelte";
+	import Button from "../components/ui/Button.svelte";
+	import Table from "../components/ui/Table.svelte";
+	import { writable } from "svelte/store";
 
     let employees: { id: string; name: string; employeeIdentification: string; }[] = $state([]);
     let name: string = $state("");
@@ -64,36 +68,20 @@
 <div class="flex flex-col">
     <div class="bg-base-100 rounded-t-3xl p-4">
         <h1 class="text-2xl text-center w-full">Mitarbeiter</h1>
-        <table class="table w-full">
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Mitarbeiter-ID</th>
-                </tr>
-            </thead>
-            <tbody>
-                {#each employees as employee}
-                    <tr>
-                        <td>{employee.name}</td>
-                        <td>{employee.employeeIdentification}</td>
-                        <td>
-                            <button class="btn btn-sm btn-primarx" onclick={() => deleteEmployee(employee.id)}>
-                                <Icon icon={Trash} />
-                            </button>
-                        </td>
-                    </tr>
-                {/each}
-            </tbody>
-        </table>
+        <Table data={employees} columnDefinition={[
+            { type: 'data', header: "Name", accessor: "name" },
+            { type: 'data', header: "Mitarbeiter-ID", accessor: "employeeIdentification", sortFunction: (a, b) => a.employeeIdentification.localeCompare(b.employeeIdentification), allowSorting: true },
+            { type: 'button', header: "Aktionen", buttonIcon: Trash, onClick: (row) => deleteEmployee(row.id) }
+        ]} />
     </div>
     <div class="bg-base-100 rounded-b-3xl pt-10 p-5">
         <fieldset class="fieldset">
             <legend class="fieldset-legend">Mitarbeiter erfassen</legend>
             <label for="name" class="label">Name</label>
-            <input id="name" type="text" class="input input-bordered w-full" bind:value={name} />
+            <Input id="name" type="text" class="input input-bordered w-full" bind:value={name} />
             <label for="employeeIdentification" class="label">Mitarbeiter-ID</label>
-            <input id="employeeIdentification" type="text" class="input input-bordered w-full" bind:value={employeeIdentification} />
-            <button class="btn btn-primary w-full mt-4" onclick={createEmployee}>Mitarbeiter erfassen</button>
+            <Input id="employeeIdentification" type="text" class="input input-bordered w-full" bind:value={employeeIdentification} />
+            <Button class="w-full mt-4" onclick={createEmployee}>Mitarbeiter erfassen</Button>
         </fieldset>
     </div>
 </div>
