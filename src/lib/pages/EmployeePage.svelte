@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from "svelte";
-	import { sendWorkerDataMessage, sendWorkerMessage } from "../../background/messages/messageSender";
+	import { sendWorkerDataMessage } from "../../background/messages/messageSender";
 	import Icon from "../components/Icon.svelte";
 	import { Trash } from "@lucide/svelte";
 	import { alertQueue } from "../stores/alert";
