@@ -476,15 +476,35 @@ function isSameBaseTour(
   existingTour: typeof touren.$inferSelect,
   nextTour: SBBUtilityTouren,
 ) {
-  return (
-    existingTour.abkuerzung === nextTour.abkuerzung &&
-    existingTour.tourNumber === nextTour.tourNumber &&
-    existingTour.tourSuffix === nextTour.tourSuffix &&
-    existingTour.depot === nextTour.depot &&
-    toTimestamp(existingTour.startTime) === toTimestamp(nextTour.startTime) &&
-    toTimestamp(existingTour.endTime) === toTimestamp(nextTour.endTime) &&
-    toTimestamp(existingTour.lastEdited) === toTimestamp(nextTour.lastEdited)
-  );
+  if (existingTour.abkuerzung !== nextTour.abkuerzung) {
+    return false;
+  }
+
+  if (existingTour.tourNumber !== nextTour.tourNumber) {
+    return false;
+  }
+
+  if (existingTour.tourSuffix !== nextTour.tourSuffix) {
+    return false;
+  }
+
+  if (existingTour.depot !== nextTour.depot) {
+    return false;
+  }
+
+  if (toTimestamp(existingTour.startTime) !== toTimestamp(nextTour.startTime)) {
+    return false;
+  }
+
+  if (toTimestamp(existingTour.endTime) !== toTimestamp(nextTour.endTime)) {
+    return false;
+  }
+
+  if (toTimestamp(existingTour.lastEdited) !== toTimestamp(nextTour.lastEdited)) {
+    return false;
+  }
+
+  return true;
 }
 
 function copyPersistedDetailFields(
