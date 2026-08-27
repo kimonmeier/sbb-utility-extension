@@ -8,11 +8,13 @@ import {
 import { SopreDepot, SopreTourType, type SopreMonthsRequest } from "./types/sopretypes";
 import { sbbClient, toUserFacingSbbError } from "./sbbclient";
 import { db } from "../db/db";
+import { TRACKED_ACCOUNT_IDS } from "../caluclations/types";
 
 type PersistedTour = typeof touren.$inferSelect;
 type TourItem = ReturnType<typeof flattenTourItems>[number];
 
 const TIME_ZONE = "Europe/Zurich";
+const TRACKED_ACCOUNT_IDS_SET = [...TRACKED_ACCOUNT_IDS]
 
 function parseZonedDateTime(value: string): Date {
   const match = value
@@ -128,7 +130,6 @@ async function synchronizeTouren(employeeId: string, employeeIndentification: st
   await synchronizeZeitkonten(employeeId, api_token);
 }
 
-const INTERESTING_ZEITKONTEN_IDS = new Set(["5", "9040", "9046", "9047"]);
 const TOUR_TYPE_BY_CODE: Record<string, SopreTourType> = {
   K: SopreTourType.KRANK,
   RT: SopreTourType.RUHETAGE,
@@ -161,7 +162,7 @@ async function synchronizeZeitkonten(employeeId: string, token: string) {
 
   const currentSnapshotDate = todayInZurich();
   const selectedEntries = zeitkontenData.filter((entry) =>
-    INTERESTING_ZEITKONTEN_IDS.has(entry.sapLeaveTypeId),
+    TRACKED_ACCOUNT_IDS_SET.find(x => x == entry.sapLeaveTypeId),
   );
 
   if (selectedEntries.length === 0) {
