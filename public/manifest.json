@@ -6,6 +6,10 @@
   "side_panel": {
     "default_path": "index.html"
   },
+  "host_permissions": [
+    "*://*.sopreweb.sbb.ch/*",
+    "*://sopreweb-tourenplan-api.app.sbb.ch/*"
+  ],
   "background": {
     "service_worker": "./assets/background.js",
     "type": "module"
@@ -21,7 +25,7 @@
     "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self';"
   },
 
-  "permissions": ["sidePanel", "offscreen", "storage", "tabs", "sopreweb.sbb.ch"],
+  "permissions": ["sidePanel", "offscreen", "storage", "tabs", "webRequest"],
   "icons": {
     "16": "icons/icon16.png",
     "48": "icons/icon48.png",

@@ -1,5 +1,5 @@
 import { createWorkerListener } from "./messages/messageReciever";
-import { sendOffscreenMessage } from "./messages/messageSender";
+import { sendOffscreenDataMessage, sendOffscreenMessage } from "./messages/messageSender";
 
 const TARGET_URLS = [
   "https://sopreweb-tourenplan-api.app.sbb.ch/mitarbeiter/check*",
@@ -39,11 +39,31 @@ chrome.runtime.onInstalled.addListener(async () => {
         api_token: currentToken,
       });
     },
+    // Example: fan out a data message by its `dbType` and forward it to the
+    // offscreen document, where the actual SQLite access happens.
+    QUERY_DB: {
+      GET_EPMLOYEES: async () => {
+        return await sendOffscreenDataMessage("QUERY_DB", "GET_EPMLOYEES");
+      },
+      GET_TOUREN: async () => {
+        return await sendOffscreenDataMessage("QUERY_DB", "GET_TOUREN");
+      },
+    },
+    INSERT_DB: {
+      INSERT_EMPLOYEE: async (payload) => {
+        return await sendOffscreenDataMessage("INSERT_DB", "INSERT_EMPLOYEE", payload);
+      },
+    },
+    DELETE_DB: {
+      DELETE_EMPLOYEE: async (payload) => {
+        return await sendOffscreenDataMessage("DELETE_DB", "DELETE_EMPLOYEE", payload);
+      },
+    },
   });
 
   console.log("Database initialized in offscreen document:", initResult);
 });
-/*
+
 chrome.webRequest.onBeforeSendHeaders.addListener(
   (details) => {
     if (!details.requestHeaders) {
@@ -65,4 +85,4 @@ chrome.webRequest.onBeforeSendHeaders.addListener(
   },
   { urls: TARGET_URLS },
   ["requestHeaders"],
-);*/
+);

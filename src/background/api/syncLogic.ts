@@ -1,6 +1,5 @@
-import { and, desc, eq, inArray } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import {
-  employee,
   touren,
   zeitkontenSnapshots,
   type SBBUtilityTouren,
@@ -19,7 +18,7 @@ export async function synchronizeTourenForAllEmployees(api_token: string): Promi
   let retVal: { success: boolean; error?: string } = { success: true };
   for (const employee of employees) {
     try {
-      await synchronizeTouren(employee.id, api_token);
+      await synchronizeTouren(employee.id, employee.employeeId, api_token);
     } catch (error) {
         retVal.success = false;
         if (retVal.error) {
@@ -34,7 +33,7 @@ export async function synchronizeTourenForAllEmployees(api_token: string): Promi
   return retVal;
 }
 
-async function synchronizeTouren(userId: string, api_token: string) {
+async function synchronizeTouren(employeeId: string, employeeIndentification: string, api_token: string) {
   const tourenData = await fetchTourenYearDataOrThrow(api_token);
   console.log("Fetched touren data from SBB API:", tourenData);
 
@@ -46,25 +45,25 @@ async function synchronizeTouren(userId: string, api_token: string) {
   }
 
   const existingTourenByDay = await fetchExistingTourenByDay(
-    userId,
+    employeeId,
     Array.from(uniqueTourItemsByDay.keys()),
   );
   const processedTouren = await processTourenData(
     Array.from(uniqueTourItemsByDay.values()),
-    userId,
+    employeeId,
     api_token,
     existingTourenByDay,
   );
 
   if (processedTouren.length > 0) {
     await upsertTourenForUser(
-      userId,
+      employeeId,
       deduplicateTourenByDay(processedTouren),
       existingTourenByDay,
     );
   }
 
-  await synchronizeZeitkonten(userId, api_token);
+  await synchronizeZeitkonten(employeeId, api_token);
 }
 
 const INTERESTING_ZEITKONTEN_IDS = new Set(["5", "9040", "9046", "9047"]);
