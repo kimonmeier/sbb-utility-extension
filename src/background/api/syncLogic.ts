@@ -12,6 +12,68 @@ import { db } from "../db/db";
 type PersistedTour = typeof touren.$inferSelect;
 type TourItem = ReturnType<typeof flattenTourItems>[number];
 
+const TIME_ZONE = "Europe/Zurich";
+
+function parseZonedDateTime(value: string): Date {
+  const match = value
+    .trim()
+    .match(/^(\d{4})-(\d{2})-(\d{2})(?:[ T](\d{1,2}):(\d{2})(?::(\d{2}))?)?$/);
+  if (!match) {
+    throw new Error(`Unrecognized date/time value from SBB API: "${value}"`);
+  }
+
+  const [, year, month, day, hour, minute, second] = match;
+  const utcGuess = Date.UTC(
+    Number(year),
+    Number(month) - 1,
+    Number(day),
+    hour ? Number(hour) : 0,
+    minute ? Number(minute) : 0,
+    second ? Number(second) : 0,
+  );
+
+  const offsetMinutes = getTimeZoneOffsetMinutes(new Date(utcGuess), TIME_ZONE);
+  return new Date(utcGuess - offsetMinutes * 60_000);
+}
+
+function getTimeZoneOffsetMinutes(date: Date, timeZone: string): number {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    hourCycle: "h23",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  }).formatToParts(date);
+
+  const lookup: Record<string, string> = {};
+  for (const part of parts) {
+    lookup[part.type] = part.value;
+  }
+
+  const asUtc = Date.UTC(
+    Number(lookup.year),
+    Number(lookup.month) - 1,
+    Number(lookup.day),
+    Number(lookup.hour),
+    Number(lookup.minute),
+    Number(lookup.second),
+  );
+
+  return (asUtc - date.getTime()) / 60_000;
+}
+
+function addDaysToDateString(dateStr: string, days: number): string {
+  const [year, month, day] = dateStr.split("-").map(Number);
+  return new Date(Date.UTC(year, month - 1, day + days)).toISOString().slice(0, 10);
+}
+
+function todayInZurich(): string {
+  return new Intl.DateTimeFormat("en-CA", { timeZone: TIME_ZONE }).format(new Date());
+}
+
 export async function synchronizeTourenForAllEmployees(api_token: string): Promise<{ success: boolean; error?: string }> {
   const employees = await db.query.employee.findMany();
 
@@ -97,7 +159,7 @@ async function synchronizeZeitkonten(employeeId: string, token: string) {
     );
   }
 
-  const currentSnapshotDate = new Date().toISOString().slice(0, 10);
+  const currentSnapshotDate = todayInZurich();
   const selectedEntries = zeitkontenData.filter((entry) =>
     INTERESTING_ZEITKONTEN_IDS.has(entry.sapLeaveTypeId),
   );
@@ -192,7 +254,7 @@ function buildUniqueTourItemsByDay(items: TourItem[]): Map<number, TourItem> {
 
   const tourItemByDay = new Map<number, TourItem[]>();
   for (const item of items) {
-    const day = Date.parse(item.date);
+    const day = parseZonedDateTime(item.date).getTime();
     if (!tourItemByDay.has(day)) {
       tourItemByDay.set(day, []);
     }
@@ -321,7 +383,7 @@ function buildTourUpdatePayload(row: SBBUtilityTouren) {
 function createBaseTour(item: TourItem, employeeId: string): SBBUtilityTouren {
   return {
     id: crypto.randomUUID(),
-    datum: Date.parse(item.date),
+    datum: parseZonedDateTime(item.date).getTime(),
     employee: employeeId,
     abkuerzung: SopreTourType.UNBEKANNT,
   };
@@ -339,19 +401,18 @@ function applyReserveFields(item: TourItem, tour: SBBUtilityTouren): void {
   }
 
   if (item.lastEdit) {
-    tour.lastEdited = new Date(Date.parse(item.lastEdit));
+    tour.lastEdited = parseZonedDateTime(item.lastEdit);
   }
 }
 
 function applyPlannedTourFields(item: TourItem, tour: SBBUtilityTouren): void {
-  const endTime = new Date(Date.parse(`${item.date} ${item.tourEndzeit}`));
-  if (item.tourEndsNextDay) {
-    endTime.setDate(endTime.getDate() + 1);
-  }
+  const endDate = item.tourEndsNextDay
+    ? addDaysToDateString(item.date, 1)
+    : item.date;
 
   tour.tourNumber = parseInt(item.tournummer!, 10);
-  tour.startTime = new Date(Date.parse(`${item.date} ${item.tourStartzeit}`));
-  tour.endTime = endTime;
+  tour.startTime = parseZonedDateTime(`${item.date} ${item.tourStartzeit}`);
+  tour.endTime = parseZonedDateTime(`${endDate} ${item.tourEndzeit}`);
   tour.depot = parseStandort(item.startStandort);
   tour.tourSuffix = item.tourSuffix;
 }
