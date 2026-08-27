@@ -1,30 +1,46 @@
 import {
   MessageTargets,
-  type MessageRegistry,
   type MessageType,
+  type OffscreenDataMessageRegistry,
   type OffscreenMessageRegistry,
+  type WorkerDataMessageRegistry,
   type WorkerMessageRegistry,
 } from "./messages";
 
 // Defines an object where the keys are MessageTypes and the values are functions
 // that take the correct payload and return the correct Promise response.
-type GenericHandlers = {
-  [K in MessageType]: (
-    payload: MessageRegistry[K]["payload"],
-  ) => Promise<MessageRegistry[K]["response"]>;
+type GenericHandlers = Partial<
+  Record<MessageType, Record<string, (payload: any) => Promise<any>> | ((payload: any) => Promise<any>)>
+>;
+
+type PlainHandlers<Registry> = {
+  [K in keyof Registry]: (
+    payload: Registry[K] extends { payload: infer P } ? P : never,
+  ) => Promise<Registry[K] extends { response: infer R } ? R : never>;
 };
 
-type OffscreenHandlers = {
-  [K in MessageType]: (
-    payload: OffscreenMessageRegistry[K]["payload"],
-  ) => Promise<OffscreenMessageRegistry[K]["response"]>;
+// For data registries, each top-level key (e.g. "QUERY_DB") fans out into a
+// nested handler keyed by the message's own `dbType` discriminator, so the
+// payload/response types are narrowed to that specific sub-command.
+type DataHandlers<Registry> = {
+  [T in keyof Registry]: Registry[T] extends {
+    dbType: string;
+    payload: any;
+    response: any;
+  }
+    ? {
+        [K in Registry[T]["dbType"]]: (
+          payload: Extract<Registry[T], { dbType: K }>["payload"],
+        ) => Promise<Extract<Registry[T], { dbType: K }>["response"]>;
+      }
+    : never;
 };
 
-type WorkerHandlers = {
-  [K in MessageType]: (
-    payload: WorkerMessageRegistry[K]["payload"],
-  ) => Promise<WorkerMessageRegistry[K]["response"]>;
-};
+type OffscreenHandlers = PlainHandlers<OffscreenMessageRegistry> &
+  Partial<DataHandlers<OffscreenDataMessageRegistry>>;
+
+type WorkerHandlers = PlainHandlers<WorkerMessageRegistry> &
+  Partial<DataHandlers<WorkerDataMessageRegistry>>;
 
 export function createOffscreenListener(handlers: Partial<OffscreenHandlers>) {
   return createGenericListener(handlers, MessageTargets.OFFSCREEN);
@@ -35,7 +51,7 @@ export function createWorkerListener(handlers: Partial<WorkerHandlers>) {
 }
 
 function createGenericListener(
-  handlers: Partial<GenericHandlers>,
+  handlers: GenericHandlers,
   target: MessageTargets,
 ) {
   chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
@@ -43,7 +59,9 @@ function createGenericListener(
       return false;
     }
 
-    const handler = handlers[message.type as MessageType];
+    const entry = handlers[message.type as MessageType];
+    const handler =
+      typeof entry === "function" ? entry : entry?.[message.dbType];
 
     if (handler) {
       // Execute the handler and pipe the result back to the sender

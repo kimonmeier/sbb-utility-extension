@@ -1,28 +1,13 @@
-// Define the exact shape of every message in your app
-export type OffscreenMessageRegistry = {
-  INIT_DB: {
-    payload: undefined;
-    response: { success: boolean; error?: string };
-  };
-  SYNC_API: {
-    payload: { api_token: string };
-    response: { success: boolean; error?: string };
-  };
-};
+export type { OffscreenMessageRegistry, OffscreenDataMessageRegistry, OffscreenUnionMessageRegistry } from "./offscreen";
+export type { WorkerMessageRegistry, WorkerDataMessageRegistry, WorkerUnionMessageRegistry } from "./worker";
+export type { UIMessageRegistry } from "./ui";
 
-export type WorkerMessageRegistry = {
-  SYNC_API_WORKER: {
-    payload: undefined;
-    response: { success: boolean; error?: string };
-  };
-};
+import type { OffscreenUnionMessageRegistry } from "./offscreen";
+import type { WorkerUnionMessageRegistry } from "./worker";
+import type { UIMessageRegistry } from "./ui";
 
-export type UIMessageRegistry = {
-  // Define UI messages here if needed
-};
-
-export type MessageRegistry = OffscreenMessageRegistry &
-  WorkerMessageRegistry &
+export type MessageRegistry = OffscreenUnionMessageRegistry &
+  WorkerUnionMessageRegistry &
   UIMessageRegistry;
 
 export enum MessageTargets {
