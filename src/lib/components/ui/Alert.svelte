@@ -2,6 +2,8 @@
 	import type { Snippet } from "svelte";
 	import { Info, AlertCircle, Check, X } from "../../icons";
 	import Icon from "../Icon.svelte";
+	import { XCircle } from "@lucide/svelte";
+	import { fade } from "svelte/transition";
 
 	interface Props {
 		variant?: "info" | "success" | "warning" | "error";
@@ -19,18 +21,18 @@
 	}: Props = $props();
 
 	const classes = $derived(
-		["alert", `alert-${variant}`, className].filter(Boolean).join(" "),
+		["flex", "flex-row", "alert", `alert-${variant}`, className].filter(Boolean).join(" "),
 	);
 
 	const iconMap = {
 		info: Info,
 		success: Check,
 		warning: AlertCircle,
-		error: X,
+		error: XCircle,
 	};
 </script>
 
-<div class={classes} role="alert" {...rest}>
+<div transition:fade class={classes} role="alert" {...rest}>
 	{#if showIcon}
 		<Icon icon={iconMap[variant]} size={20} />
 	{/if}

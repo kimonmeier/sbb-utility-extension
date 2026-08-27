@@ -29,6 +29,7 @@ export {
   ExternalLink,
   Grid3x3,
   Layers,
+  PersonStanding,
   Coffee,
   Heart,
 } from '@lucide/svelte';
