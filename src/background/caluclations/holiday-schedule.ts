@@ -45,6 +45,11 @@ function assignChunkChargeTargets(
 	chunk: number[],
 	chargeTargets: Map<number, FerienChargeAccount>
 ) {
+	if (chunk.length < 5) {
+		setTargetKonto(chunk, '9040', chargeTargets);
+		return;
+	}
+
 	const firstWindow = chunk.slice(0, 8);
 	setTargetKonto(firstWindow.slice(0, 1), '9046', chargeTargets);
 	setTargetKonto(firstWindow.slice(1, 2), '9047', chargeTargets);
