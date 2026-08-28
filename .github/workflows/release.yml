@@ -1,0 +1,87 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: yarn
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Build extension
+        run: yarn build
+
+      - name: Package build
+        run: |
+          cd dist
+          zip -r "../sbb-utility-extension-${GITHUB_REF_NAME}.zip" .
+
+      - name: Generate release notes
+        run: |
+          CURRENT_TAG="${GITHUB_REF_NAME}"
+          PREV_TAG=$(git describe --tags --abbrev=0 "${CURRENT_TAG}^" 2>/dev/null || echo "")
+          DATE=$(date +%Y-%m-%d)
+
+          {
+            echo "## [$CURRENT_TAG] - $DATE"
+            echo ""
+            if [ -n "$PREV_TAG" ]; then
+              git log "$PREV_TAG..$CURRENT_TAG" --no-merges --pretty=format:"- %s (%h)"
+            else
+              git log "$CURRENT_TAG" --no-merges --pretty=format:"- %s (%h)"
+            fi
+            echo ""
+          } > release-notes.md
+
+          cat release-notes.md
+
+      - name: Commit changelog to main
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin main
+          git checkout main
+          git pull --ff-only origin main
+
+          if [ ! -f CHANGELOG.md ]; then
+            printf '# Changelog\n\n' > CHANGELOG.md
+          fi
+          {
+            head -n 2 CHANGELOG.md
+            cat release-notes.md
+            echo ""
+            tail -n +3 CHANGELOG.md
+          } > CHANGELOG.md.new
+          mv CHANGELOG.md.new CHANGELOG.md
+
+          git add CHANGELOG.md
+          if ! git diff --cached --quiet; then
+            git commit -m "docs: update changelog for ${GITHUB_REF_NAME} [skip ci]"
+            git push origin HEAD:main
+          fi
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: ${{ github.ref_name }}
+          body_path: release-notes.md
+          files: sbb-utility-extension-${{ github.ref_name }}.zip
