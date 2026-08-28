@@ -15,6 +15,13 @@ export default defineConfig({
       emitTsDeclarations: true
     })
   ],
+  resolve: {
+    alias: {
+      '@': resolve(__dirname, 'src'),
+      $lib: resolve(__dirname, 'src/lib'),
+      $background: resolve(__dirname, 'src/background')
+    }
+  },
   build: {
     outDir: 'dist',
     rollupOptions: {
