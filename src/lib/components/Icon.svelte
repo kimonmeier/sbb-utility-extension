@@ -1,5 +1,6 @@
 <script lang="ts">
-	import type { Component } from "svelte";
+	/* eslint-disable @typescript-eslint/no-explicit-any */
+	import type { Component } from 'svelte';
 
 	interface Props {
 		icon: Component<any>;
@@ -8,19 +9,7 @@
 		class?: string;
 	}
 
-	let {
-		icon,
-		size = 24,
-		strokeWidth = 2,
-		class: className = "",
-		...rest
-	}: Props = $props();
+	let { icon, size = 24, strokeWidth = 2, class: className = '', ...rest }: Props = $props();
 </script>
 
-<svelte:component
-	this={icon}
-	{size}
-	{strokeWidth}
-	class={className}
-	{...rest}
-/>
+<svelte:component this={icon} {size} {strokeWidth} class={className} {...rest} />

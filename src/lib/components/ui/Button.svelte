@@ -1,19 +1,19 @@
 <script lang="ts">
-	import type { Snippet } from "svelte";
+	import type { Snippet } from 'svelte';
 
 	interface Props {
 		variant?:
-			| "primary"
-			| "secondary"
-			| "accent"
-			| "ghost"
-			| "link"
-			| "neutral"
-			| "error"
-			| "warning"
-			| "info"
-			| "success";
-		size?: "xs" | "sm" | "md" | "lg";
+			| 'primary'
+			| 'secondary'
+			| 'accent'
+			| 'ghost'
+			| 'link'
+			| 'neutral'
+			| 'error'
+			| 'warning'
+			| 'info'
+			| 'success';
+		size?: 'xs' | 'sm' | 'md' | 'lg';
 		outline?: boolean;
 		wide?: boolean;
 		block?: boolean;
@@ -23,13 +23,13 @@
 		disabled?: boolean;
 		class?: string;
 		onclick?: () => void;
-		type?: "button" | "submit" | "reset";
+		type?: 'button' | 'submit' | 'reset';
 		children?: Snippet;
 	}
 
 	let {
-		variant = "neutral",
-		size = "md",
+		variant = 'neutral',
+		size = 'md',
 		outline = false,
 		wide = false,
 		block = false,
@@ -37,28 +37,28 @@
 		square = false,
 		loading = false,
 		disabled = false,
-		class: className = "",
+		class: className = '',
 		onclick,
-		type = "button",
+		type = 'button',
 		children,
 		...rest
 	}: Props = $props();
 
 	const classes = $derived(
 		[
-			"btn",
-			variant !== "neutral" && `btn-${variant}`,
-			outline && "btn-outline",
-			size !== "md" && `btn-${size}`,
-			wide && "btn-wide",
-			block && "btn-block",
-			circle && "btn-circle",
-			square && "btn-square",
-			loading && "btn-disabled loading",
-			className,
+			'btn',
+			variant !== 'neutral' && `btn-${variant}`,
+			outline && 'btn-outline',
+			size !== 'md' && `btn-${size}`,
+			wide && 'btn-wide',
+			block && 'btn-block',
+			circle && 'btn-circle',
+			square && 'btn-square',
+			loading && 'btn-disabled loading',
+			className
 		]
 			.filter(Boolean)
-			.join(" "),
+			.join(' ')
 	);
 </script>
 

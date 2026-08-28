@@ -1,34 +1,33 @@
 <script lang="ts">
-	import type { Snippet } from "svelte";
-	import { Info, AlertCircle, Check, X } from "../../icons";
-	import Icon from "../Icon.svelte";
-	import { XCircle } from "@lucide/svelte";
-	import { fade } from "svelte/transition";
+	import type { Snippet } from 'svelte';
+	import { Info, AlertCircle, Check, XCircle } from '$lib/icons';
+	import Icon from '$lib/components/Icon.svelte';
+	import { fade } from 'svelte/transition';
 
 	interface Props {
-		variant?: "info" | "success" | "warning" | "error";
+		variant?: 'info' | 'success' | 'warning' | 'error';
 		class?: string;
 		showIcon?: boolean;
 		children?: Snippet;
 	}
 
 	let {
-		variant = "info",
-		class: className = "",
+		variant = 'info',
+		class: className = '',
 		showIcon = true,
 		children,
 		...rest
 	}: Props = $props();
 
 	const classes = $derived(
-		["flex", "flex-row", "alert", `alert-${variant}`, className].filter(Boolean).join(" "),
+		['flex', 'flex-row', 'alert', `alert-${variant}`, className].filter(Boolean).join(' ')
 	);
 
 	const iconMap = {
 		info: Info,
 		success: Check,
 		warning: AlertCircle,
-		error: XCircle,
+		error: XCircle
 	};
 </script>
 

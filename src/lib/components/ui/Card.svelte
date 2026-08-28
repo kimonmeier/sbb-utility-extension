@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { Snippet } from "svelte";
+	import type { Snippet } from 'svelte';
 
 	interface Props {
 		title?: string;
@@ -16,7 +16,7 @@
 		compact = false,
 		bordered = false,
 		imageFull = false,
-		class: className = "",
+		class: className = '',
 		children,
 		actions,
 		...rest
@@ -24,18 +24,16 @@
 
 	const classes = $derived(
 		[
-			"card bg-base-200 shadow-xl",
-			bordered && "card-bordered",
-			imageFull && "image-full",
-			className,
+			'card bg-base-200 shadow-xl',
+			bordered && 'card-bordered',
+			imageFull && 'image-full',
+			className
 		]
 			.filter(Boolean)
-			.join(" "),
+			.join(' ')
 	);
 
-	const bodyClasses = $derived(
-		["card-body", compact && "card-compact"].filter(Boolean).join(" "),
-	);
+	const bodyClasses = $derived(['card-body', compact && 'card-compact'].filter(Boolean).join(' '));
 </script>
 
 <div class={classes} {...rest}>

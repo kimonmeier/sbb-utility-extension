@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { Snippet } from "svelte";
+	import type { Snippet } from 'svelte';
 
 	interface Props {
 		open?: boolean;
@@ -13,7 +13,7 @@
 	let {
 		open = $bindable(false),
 		title,
-		class: className = "",
+		class: className = '',
 		onclose,
 		children,
 		actions,
