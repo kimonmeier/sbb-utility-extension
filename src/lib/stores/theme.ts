@@ -1,14 +1,9 @@
 import { writable, get } from 'svelte/store';
 
 // DaisyUI theme options
-export type Theme =
-  | 'light'
-  | 'dark';
+export type Theme = 'light' | 'dark';
 
-export const AVAILABLE_THEMES: Theme[] = [
-  'light',
-  'dark',
-];
+export const AVAILABLE_THEMES: Theme[] = ['light', 'dark'];
 
 const STORAGE_KEY = 'sbb-utility-theme';
 
@@ -18,34 +13,34 @@ export const theme = writable<Theme>(storedTheme);
 
 // Subscribe to save theme changes to localStorage
 theme.subscribe((value) => {
-  if (typeof localStorage !== 'undefined') {
-    localStorage.setItem(STORAGE_KEY, value);
-  }
+	if (typeof localStorage !== 'undefined') {
+		localStorage.setItem(STORAGE_KEY, value);
+	}
 });
 
 export function initializeTheme(): void {
-  const currentTheme = get(theme);
-  const root = document.querySelector('div[data-theme]');
-  if (root) {
-    root.setAttribute('data-theme', currentTheme);
-  }
+	const currentTheme = get(theme);
+	const root = document.querySelector('div[data-theme]');
+	if (root) {
+		root.setAttribute('data-theme', currentTheme);
+	}
 }
 
 export function setTheme(newTheme: Theme): void {
-  theme.set(newTheme);
-  const root = document.querySelector('div[data-theme]');
-  if (root) {
-    root.setAttribute('data-theme', newTheme);
-  }
+	theme.set(newTheme);
+	const root = document.querySelector('div[data-theme]');
+	if (root) {
+		root.setAttribute('data-theme', newTheme);
+	}
 }
 
 export function toggleTheme(): void {
-  theme.update((current) => {
-    const newTheme: Theme = current === 'light' ? 'dark' : 'light';
-    const root = document.querySelector('div[data-theme]');
-    if (root) {
-      root.setAttribute('data-theme', newTheme);
-    }
-    return newTheme;
-  });
+	theme.update((current) => {
+		const newTheme: Theme = current === 'light' ? 'dark' : 'light';
+		const root = document.querySelector('div[data-theme]');
+		if (root) {
+			root.setAttribute('data-theme', newTheme);
+		}
+		return newTheme;
+	});
 }

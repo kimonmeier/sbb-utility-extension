@@ -1,19 +1,19 @@
 <script lang="ts">
-	import { theme, toggleTheme } from "../stores/theme";
-	import { locale, changeLocale, AVAILABLE_LOCALES } from "../stores/locale";
-	import { Moon, Sun, Palette, Shield, Globe } from "../icons";
-	import Icon from "../components/Icon.svelte";
-	import { m } from "../../paraglide/messages.js";
+	import { theme, toggleTheme } from '$lib/stores/theme';
+	import { locale, changeLocale, AVAILABLE_LOCALES } from '$lib/stores/locale';
+	import { Moon, Sun, Palette, Shield, Globe } from '$lib/icons';
+	import Icon from '$lib/components/Icon.svelte';
+	import { m } from '@/paraglide/messages.js';
 
 	const languageLabels: Record<string, () => string> = {
 		de: m.language_de,
-		it: m.language_it,
+		it: m.language_it
 	};
 </script>
 
 <div class="space-y-6">
 	<!-- Header -->
-	<div class="flex items-center gap-3">
+	<div class="gap-3 flex items-center">
 		<Icon icon={Shield} size={32} class="text-primary" />
 		<div>
 			<h1 class="text-3xl font-bold">{m.settings_title()}</h1>
@@ -32,12 +32,12 @@
 			<div class="form-control">
 				<label class="label cursor-pointer">
 					<span class="label-text">{m.settings_theme()}</span>
-					<div class="flex items-center gap-3">
-						<Icon icon={$theme === "light" ? Sun : Moon} size={20} />
+					<div class="gap-3 flex items-center">
+						<Icon icon={$theme === 'light' ? Sun : Moon} size={20} />
 						<input
 							type="checkbox"
 							class="toggle toggle-primary"
-							checked={$theme === "dark"}
+							checked={$theme === 'dark'}
 							onchange={toggleTheme}
 						/>
 					</div>
@@ -67,7 +67,7 @@
 					value={$locale}
 					onchange={(e) => changeLocale(e.currentTarget.value as typeof $locale)}
 				>
-					{#each AVAILABLE_LOCALES as availableLocale}
+					{#each AVAILABLE_LOCALES as availableLocale (availableLocale)}
 						<option value={availableLocale}>{languageLabels[availableLocale]()}</option>
 					{/each}
 				</select>
