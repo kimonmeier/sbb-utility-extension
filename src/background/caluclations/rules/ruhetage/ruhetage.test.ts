@@ -8,7 +8,7 @@ function tour(abkuerzung: TourRow['abkuerzung']): TourRow {
 	return { abkuerzung } as TourRow;
 }
 
-const ctx: RuleContext = { ferienChargeTargets: new Map() };
+const ctx: RuleContext = { ferienChargeTargets: new Map(), kuerzungenChargeTargets: new Map() };
 
 describe('ruhetagRule', () => {
 	it.each([

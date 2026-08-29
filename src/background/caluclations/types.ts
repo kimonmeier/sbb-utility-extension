@@ -7,6 +7,7 @@ export type TourRow = typeof touren.$inferSelect;
 export type SnapshotRow = typeof zeitkontenSnapshots.$inferSelect;
 
 export type FerienChargeAccount = '9040' | '9046' | '9047';
+export type KuerzungenChargeAccount = '9040' | '9046' | '9047';
 
 export type ProjectionRule =
 	| 'RT -> 9047 (-1)'
@@ -14,6 +15,9 @@ export type ProjectionRule =
 	| 'Ferienregel -> 9040 (-1 Arbeitstag)'
 	| 'Ferienregel -> 9046 (-1 Ausgleichstag)'
 	| 'Ferienregel -> 9047 (-1 Ruhetag)'
+	| 'Kuerzung Ruhetag (9047 -1)'
+	| 'Kuerzung Kompensationstag (9046 -1)'
+	| 'Kuerzung Ferien (9040 -1)'
 	| 'Reserve -> 5 (fix 8.2h)'
 	| 'Arbeitszeit -> 5 (bezahlteZeit - 8.2h)';
 

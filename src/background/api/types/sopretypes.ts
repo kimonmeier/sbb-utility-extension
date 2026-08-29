@@ -13,7 +13,9 @@ export enum SopreTourType {
 	GUTHABEN_RUHETAG_PERSONAL = 'Guthaben Ruhetage Tag Personal',
 	GUTHABEN_KOMPENSATIONSTAG_PERSONAL = 'Guthaben Kompensationstag Personal',
 	WOHNUNGSWECHSEL = 'WW',
-	NBU = 'NBU',
+	NICHTBERUFSUNFALL = 'NBU',
+	BERUFSUNFALL = 'BU',
+	UNBEZAHLTER_URLAUB = 'UUB',
 	UNBEKANNT = 'UNKNOWN'
 }
 

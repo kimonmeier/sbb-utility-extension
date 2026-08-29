@@ -7,6 +7,7 @@ import type {
 
 export interface RuleContext {
 	ferienChargeTargets: Map<number, FerienChargeAccount>;
+	kuerzungenChargeTargets: Map<number, AccountId>;
 }
 
 export interface ProjectionRuleDefinition {

@@ -24,3 +24,10 @@ export function countSaturdaysInYear(year: number): number {
 
 	return count;
 }
+
+export function coundDaysinYear(year: number): number {
+	const start = new Date(Date.UTC(year, 0, 1));
+	const end = new Date(Date.UTC(year + 1, 0, 1));
+	const diffInMs = end.getTime() - start.getTime();
+	return diffInMs / (1000 * 60 * 60 * 24);
+}

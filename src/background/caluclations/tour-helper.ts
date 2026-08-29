@@ -39,3 +39,12 @@ export function isReserveType(type?: string | null): boolean {
 		type === SopreTourType.RESERVE_SPÄT
 	);
 }
+
+export function isAbwesend(type?: string | null): boolean {
+	return (
+		type === SopreTourType.KRANK ||
+		type === SopreTourType.NICHTBERUFSUNFALL ||
+		type === SopreTourType.BERUFSUNFALL ||
+		type === SopreTourType.UNBEZAHLTER_URLAUB
+	);
+}
