@@ -3,8 +3,9 @@
 	import { Button, Input, Table } from '$lib/components/ui';
 	import { sendWorkerDataMessage } from '$background/messages/messageSender';
 	import { alertQueue } from '$lib/stores/alert';
-	import { Trash } from '$lib/icons';
+	import { Trash, PersonStanding } from '$lib/icons';
 	import { navigateTo } from '@/lib/stores/navigation';
+	import PageHeader from '$lib/components/PageHeader.svelte';
 	let employees: { id: string; name: string; employeeIdentification: string }[] = $state([]);
 	let name: string = $state('');
 	let employeeIdentification: string = $state('');
@@ -75,8 +76,8 @@
 	});
 </script>
 
-<div class="bg-base-100 rounded-t-3xl p-4">
-	<h1 class="text-2xl w-full text-center">{m.employee_page_title()}</h1>
+<PageHeader icon={PersonStanding} title={m.employee_page_title()} />
+<div class="bg-base-100 rounded-t-3xl p-4 mt-4">
 	<Table
 		data={employees}
 		onClick={(row) => openDetailPage(row.id)}

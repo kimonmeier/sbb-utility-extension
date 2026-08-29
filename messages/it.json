@@ -48,6 +48,11 @@
 	"employee_error_invalid_id": "L'ID dipendente deve iniziare con 'E' o 'U', seguito da 6 cifre.",
 	"employee_error_create": "Errore durante la creazione del dipendente: {error}",
 
+	"employee_detail_title": "Dipendente {name} ({employeeIdentification})",
+	"employee_detail_loading": "Caricamento dipendente...",
+	"employee_detail_error_fetch": "Errore durante il recupero dei dettagli del dipendente: {error}",
+	"employee_detail_back": "Torna alla lista dipendenti",
+
 	"sync_title": "Sincronizza dati",
 	"sync_description": "Qui è possibile sincronizzare i dati",
 	"sync_loading": "Sincronizzazione in corso...",

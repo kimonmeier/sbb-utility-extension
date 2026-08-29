@@ -49,6 +49,10 @@
 	"employee_error_create": "Fehler beim Erstellen des Mitarbeiters: {error}",
 
 	"employee_settings_title": "Einstellungen",
+	"employee_detail_title": "Mitarbeiter {name} ({employeeIdentification})",
+	"employee_detail_loading": "Mitarbeiter werden geladen...",
+	"employee_detail_error_fetch": "Fehler beim Abrufen der Mitarbeiterdetails: {error}",
+	"employee_detail_back": "Zurück zur Mitarbeiterliste",
 
 	"employee_ferien_legend": "Ferienanspruch pro Jahr",
 	"employee_ferien_table_year": "Jahr",

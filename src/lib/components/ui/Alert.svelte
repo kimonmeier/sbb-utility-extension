@@ -2,7 +2,8 @@
 	import type { Snippet } from 'svelte';
 	import { Info, AlertCircle, Check, XCircle } from '$lib/icons';
 	import Icon from '$lib/components/Icon.svelte';
-	import { fade } from 'svelte/transition';
+	import { fly } from 'svelte/transition';
+	import { DURATION_BASE } from '$lib/utils/motion';
 
 	interface Props {
 		variant?: 'info' | 'success' | 'warning' | 'error';
@@ -31,7 +32,12 @@
 	};
 </script>
 
-<div transition:fade class={classes} role="alert" {...rest}>
+<div
+	transition:fly={{ y: 12, duration: DURATION_BASE }}
+	class="{classes} shadow-sbb-1"
+	role="alert"
+	{...rest}
+>
 	{#if showIcon}
 		<Icon icon={iconMap[variant]} size={20} />
 	{/if}

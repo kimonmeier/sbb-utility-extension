@@ -59,7 +59,12 @@
 	</thead>
 	<tbody>
 		{#each sortedRows as row (row.id)}
-			<tr onclick={() => onClick?.(row)} class="hover hover:bg-base-200 cursor-pointer">
+			<tr
+				onclick={() => onClick?.(row)}
+				class="duration-sbb ease-sbb hover:bg-base-200 transition-colors {onClick
+					? 'cursor-pointer'
+					: ''}"
+			>
 				{#each columnDefinition as column (column.header)}
 					{#if column.type === 'button'}
 						<td>

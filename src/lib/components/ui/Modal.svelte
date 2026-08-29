@@ -1,5 +1,7 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
+	import { fade, scale } from 'svelte/transition';
+	import { DURATION_FAST, DURATION_BASE } from '$lib/utils/motion';
 
 	interface Props {
 		open?: boolean;
@@ -31,7 +33,11 @@
 
 {#if open}
 	<dialog class="modal modal-open" {...rest}>
-		<div class={`modal-box ${className}`}>
+		<div
+			class={`modal-box ${className}`}
+			in:scale={{ start: 0.95, duration: DURATION_BASE }}
+			out:scale={{ start: 0.95, duration: DURATION_FAST }}
+		>
 			{#if title}
 				<h3 class="font-bold text-lg mb-4">{title}</h3>
 			{/if}
@@ -52,6 +58,7 @@
 			tabindex="-1"
 			onclick={handleBackdropClick}
 			onkeydown={handleBackdropClick}
+			transition:fade={{ duration: DURATION_FAST }}
 		></div>
 	</dialog>
 {/if}

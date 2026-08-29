@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onDestroy, onMount } from 'svelte';
+	import { fade } from 'svelte/transition';
 	import { theme, initializeTheme } from './lib/stores/theme';
 	import { locale } from './lib/stores/locale';
 	import { currentPage } from './lib/stores/navigation';
@@ -7,6 +8,7 @@
 	import { alertQueue, currentAlert } from './lib/stores/alert';
 	import type { Unsubscriber } from 'svelte/store';
 	import AlertManager from './lib/components/AlertManager.svelte';
+	import { DURATION_BASE, DURATION_FAST } from './lib/utils/motion';
 
 	import Nav from './lib/components/Nav.svelte';
 
@@ -44,13 +46,20 @@
 			<main class="p-4 pb-20 flex-1 overflow-y-auto">
 				<!-- Page Content -->
 				<div class="max-w-4xl mx-auto">
-					{#if $currentPage.currentPage === 'home'}
-						<HomePage />
-					{:else if $currentPage.currentPage === 'employees'}
-						<EmployeePage />
-					{:else if $currentPage.currentPage === 'settings'}
-						<SettingsPage />
-					{/if}
+					{#key $currentPage.currentPage}
+						<div
+							in:fade={{ duration: DURATION_BASE, delay: DURATION_FAST }}
+							out:fade={{ duration: DURATION_FAST }}
+						>
+							{#if $currentPage.currentPage === 'home'}
+								<HomePage />
+							{:else if $currentPage.currentPage === 'employees'}
+								<EmployeePage />
+							{:else if $currentPage.currentPage === 'settings'}
+								<SettingsPage />
+							{/if}
+						</div>
+					{/key}
 				</div>
 			</main>
 

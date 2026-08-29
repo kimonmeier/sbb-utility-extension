@@ -6,6 +6,7 @@
 		compact?: boolean;
 		bordered?: boolean;
 		imageFull?: boolean;
+		hoverable?: boolean;
 		class?: string;
 		children?: Snippet;
 		actions?: Snippet;
@@ -16,6 +17,7 @@
 		compact = false,
 		bordered = false,
 		imageFull = false,
+		hoverable = false,
 		class: className = '',
 		children,
 		actions,
@@ -24,9 +26,10 @@
 
 	const classes = $derived(
 		[
-			'card bg-base-200 border border-base-300 shadow-sm',
+			'card bg-base-200 border border-base-300 shadow-sm transition-all duration-sbb ease-sbb',
 			bordered && 'card-bordered',
 			imageFull && 'image-full',
+			hoverable && 'hover:shadow-sbb-1 hover:-translate-y-0.5 cursor-pointer',
 			className
 		]
 			.filter(Boolean)

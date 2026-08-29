@@ -4,6 +4,7 @@
 	import { expertMode } from '$lib/stores/expertMode';
 	import { Moon, Sun, Palette, Shield, Globe } from '$lib/icons';
 	import Icon from '$lib/components/Icon.svelte';
+	import PageHeader from '$lib/components/PageHeader.svelte';
 	import ExpertSettings from '$lib/components/settings/ExpertSettings.svelte';
 	import { alertQueue } from '$lib/stores/alert';
 	import { m } from '@/paraglide/messages.js';
@@ -42,19 +43,17 @@
 </script>
 
 <div class="space-y-6">
-	<!-- Header -->
-	<div class="gap-3 flex items-center">
-		<span onclick={handleTitleTap} role="presentation">
-			<Icon icon={Shield} size={32} class="text-primary" />
-		</span>
-		<div>
-			<h1 class="text-3xl font-bold">{m.settings_title()}</h1>
-			<p class="text-sm opacity-70">{m.settings_subtitle()}</p>
-		</div>
-	</div>
+	<PageHeader
+		icon={Shield}
+		title={m.settings_title()}
+		subtitle={m.settings_subtitle()}
+		onIconClick={handleTitleTap}
+	/>
 
 	<!-- Theme Settings -->
-	<div class="card bg-base-200 border border-base-300 shadow-sm">
+	<div
+		class="card bg-base-200 border-base-300 duration-sbb ease-sbb hover:shadow-sbb-1 border shadow-sm transition-shadow"
+	>
 		<div class="card-body">
 			<h2 class="card-title">
 				<Icon icon={Palette} size={24} />
@@ -86,7 +85,9 @@
 	</div>
 
 	<!-- Language Settings -->
-	<div class="card bg-base-200 border border-base-300 shadow-sm">
+	<div
+		class="card bg-base-200 border-base-300 duration-sbb ease-sbb hover:shadow-sbb-1 border shadow-sm transition-shadow"
+	>
 		<div class="card-body">
 			<h2 class="card-title">
 				<Icon icon={Globe} size={24} />

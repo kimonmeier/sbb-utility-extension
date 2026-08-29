@@ -2,7 +2,26 @@
 export default {
 	content: ['./src/**/*.{html,js,svelte,ts}'],
 	theme: {
-		extend: {}
+		extend: {
+			// Motion tokens sourced from the Lyne design system's animation
+			// design tokens (sbb-animation-duration-*x / sbb-animation-easing).
+			transitionTimingFunction: {
+				sbb: 'cubic-bezier(0.47, 0.1, 1, 0.63)'
+			},
+			transitionDuration: {
+				'sbb-fast': '120ms',
+				sbb: '200ms',
+				'sbb-slow': '240ms'
+			},
+			boxShadow: {
+				// Approximations of Lyne's shadow-level-3 / shadow-level-5 tokens.
+				'sbb-1': '0 2px 16px rgba(21, 21, 21, 0.08), 0 1px 4px rgba(21, 21, 21, 0.06)',
+				'sbb-2': '0 4px 32px rgba(21, 21, 21, 0.12), 0 1px 8px rgba(21, 21, 21, 0.08)'
+			},
+			letterSpacing: {
+				sbb: '0.03em'
+			}
+		}
 	},
 	// eslint-disable-next-line @typescript-eslint/no-require-imports, no-undef
 	plugins: [require('daisyui')],

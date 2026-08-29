@@ -47,6 +47,10 @@
 	const classes = $derived(
 		[
 			'btn',
+			'transition-all',
+			'duration-sbb',
+			'ease-sbb',
+			'active:scale-95',
 			variant !== 'neutral' && `btn-${variant}`,
 			outline && 'btn-outline',
 			size !== 'md' && `btn-${size}`,
