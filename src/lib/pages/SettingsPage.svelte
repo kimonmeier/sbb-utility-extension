@@ -1,20 +1,52 @@
 <script lang="ts">
 	import { theme, toggleTheme } from '$lib/stores/theme';
 	import { locale, changeLocale, AVAILABLE_LOCALES } from '$lib/stores/locale';
+	import { expertMode } from '$lib/stores/expertMode';
 	import { Moon, Sun, Palette, Shield, Globe } from '$lib/icons';
 	import Icon from '$lib/components/Icon.svelte';
+	import ExpertSettings from '$lib/components/settings/ExpertSettings.svelte';
+	import { alertQueue } from '$lib/stores/alert';
 	import { m } from '@/paraglide/messages.js';
 
 	const languageLabels: Record<string, () => string> = {
 		de: m.language_de,
 		it: m.language_it
 	};
+
+	const TAPS_REQUIRED = 7;
+	const TAP_WINDOW_MS = 2000;
+
+	let tapCount = 0;
+	let tapResetTimer: ReturnType<typeof setTimeout> | undefined;
+
+	function handleTitleTap() {
+		tapCount += 1;
+
+		clearTimeout(tapResetTimer);
+		tapResetTimer = setTimeout(() => {
+			tapCount = 0;
+		}, TAP_WINDOW_MS);
+
+		if (tapCount < TAPS_REQUIRED) return;
+
+		tapCount = 0;
+		clearTimeout(tapResetTimer);
+
+		const nowEnabled = !$expertMode;
+		expertMode.set(nowEnabled);
+		alertQueue.queue({
+			type: nowEnabled ? 'success' : 'info',
+			message: nowEnabled ? m.settings_expert_unlocked() : m.settings_expert_locked()
+		});
+	}
 </script>
 
 <div class="space-y-6">
 	<!-- Header -->
 	<div class="gap-3 flex items-center">
-		<Icon icon={Shield} size={32} class="text-primary" />
+		<span onclick={handleTitleTap} role="presentation">
+			<Icon icon={Shield} size={32} class="text-primary" />
+		</span>
 		<div>
 			<h1 class="text-3xl font-bold">{m.settings_title()}</h1>
 			<p class="text-sm opacity-70">{m.settings_subtitle()}</p>
@@ -22,7 +54,7 @@
 	</div>
 
 	<!-- Theme Settings -->
-	<div class="card bg-base-200 shadow-xl">
+	<div class="card bg-base-200 border border-base-300 shadow-sm">
 		<div class="card-body">
 			<h2 class="card-title">
 				<Icon icon={Palette} size={24} />
@@ -54,7 +86,7 @@
 	</div>
 
 	<!-- Language Settings -->
-	<div class="card bg-base-200 shadow-xl">
+	<div class="card bg-base-200 border border-base-300 shadow-sm">
 		<div class="card-body">
 			<h2 class="card-title">
 				<Icon icon={Globe} size={24} />
@@ -74,4 +106,8 @@
 			</div>
 		</div>
 	</div>
+
+	{#if $expertMode}
+		<ExpertSettings />
+	{/if}
 </div>

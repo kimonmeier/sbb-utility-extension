@@ -1,8 +1,16 @@
 import { eq } from 'drizzle-orm';
 import { synchronizeTourenForAllEmployees } from './api/syncLogic';
 import { db, initDatabaseAndMigrate } from './db/db';
+import {
+	exportDatabaseAsJson,
+	exportDatabaseFile,
+	importDatabaseFile,
+	importDatabaseFromJson,
+	resetDatabase
+} from './db/backup';
 import { employee, employeeArbeitsverhaeltnis, employeeFerienanspruch } from './db/schema';
 import { createOffscreenListener } from './messages/messageReciever';
+import { arrayBufferToBase64, base64ToArrayBuffer } from '$lib/utils/base64';
 
 createOffscreenListener({
 	INIT_DB: async () => {
@@ -18,6 +26,53 @@ createOffscreenListener({
 			return { success: true };
 		} catch (error) {
 			console.error('Error during API sync:', error);
+			return { success: false, error: String(error) };
+		}
+	},
+	RESET_DB: async () => {
+		try {
+			await resetDatabase();
+			return { success: true };
+		} catch (error) {
+			console.error('Error resetting database:', error);
+			return { success: false, error: String(error) };
+		}
+	},
+	EXPORT_DB_SQLITE: async () => {
+		try {
+			const file = await exportDatabaseFile();
+			const buffer = await file.arrayBuffer();
+			return { success: true, fileBase64: arrayBufferToBase64(buffer) };
+		} catch (error) {
+			console.error('Error exporting database file:', error);
+			return { success: false, error: String(error) };
+		}
+	},
+	IMPORT_DB_SQLITE: async (payload) => {
+		try {
+			const buffer = base64ToArrayBuffer(payload.fileBase64);
+			await importDatabaseFile(new Blob([buffer]));
+			return { success: true };
+		} catch (error) {
+			console.error('Error importing database file:', error);
+			return { success: false, error: String(error) };
+		}
+	},
+	EXPORT_DB_JSON: async () => {
+		try {
+			const json = await exportDatabaseAsJson();
+			return { success: true, json };
+		} catch (error) {
+			console.error('Error exporting database as JSON:', error);
+			return { success: false, error: String(error) };
+		}
+	},
+	IMPORT_DB_JSON: async (payload) => {
+		try {
+			await importDatabaseFromJson(payload.json);
+			return { success: true };
+		} catch (error) {
+			console.error('Error importing database from JSON:', error);
 			return { success: false, error: String(error) };
 		}
 	},

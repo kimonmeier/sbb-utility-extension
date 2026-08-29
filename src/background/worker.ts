@@ -37,24 +37,80 @@ chrome.runtime.onInstalled.addListener(async () => {
 				api_token: currentToken
 			});
 		},
+		RESET_DB: async () => {
+			return await sendOffscreenMessage('RESET_DB');
+		},
+		EXPORT_DB_SQLITE: async () => {
+			return await sendOffscreenMessage('EXPORT_DB_SQLITE');
+		},
+		IMPORT_DB_SQLITE: async (payload) => {
+			return await sendOffscreenMessage('IMPORT_DB_SQLITE', payload);
+		},
+		EXPORT_DB_JSON: async () => {
+			return await sendOffscreenMessage('EXPORT_DB_JSON');
+		},
+		IMPORT_DB_JSON: async (payload) => {
+			return await sendOffscreenMessage('IMPORT_DB_JSON', payload);
+		},
 		// Example: fan out a data message by its `dbType` and forward it to the
 		// offscreen document, where the actual SQLite access happens.
 		QUERY_DB: {
 			GET_EPMLOYEES: async () => {
 				return await sendOffscreenDataMessage('QUERY_DB', 'GET_EPMLOYEES');
 			},
+			GET_EMPLOYEE_BY_ID: async (payload) => {
+				return await sendOffscreenDataMessage('QUERY_DB', 'GET_EMPLOYEE_BY_ID', payload);
+			},
 			GET_TOUREN: async () => {
 				return await sendOffscreenDataMessage('QUERY_DB', 'GET_TOUREN');
+			},
+			GET_EMPLOYEE_FERIENANSPRUCH: async (payload) => {
+				return await sendOffscreenDataMessage('QUERY_DB', 'GET_EMPLOYEE_FERIENANSPRUCH', payload);
+			},
+			GET_EMPLOYEE_ARBEITSVERHAELTNIS: async (payload) => {
+				return await sendOffscreenDataMessage(
+					'QUERY_DB',
+					'GET_EMPLOYEE_ARBEITSVERHAELTNIS',
+					payload
+				);
 			}
 		},
 		INSERT_DB: {
 			INSERT_EMPLOYEE: async (payload) => {
 				return await sendOffscreenDataMessage('INSERT_DB', 'INSERT_EMPLOYEE', payload);
+			},
+			UPSERT_EMPLOYEE_FERIENANSPRUCH: async (payload) => {
+				return await sendOffscreenDataMessage(
+					'INSERT_DB',
+					'UPSERT_EMPLOYEE_FERIENANSPRUCH',
+					payload
+				);
+			},
+			INSERT_EMPLOYEE_ARBEITSVERHAELTNIS: async (payload) => {
+				return await sendOffscreenDataMessage(
+					'INSERT_DB',
+					'INSERT_EMPLOYEE_ARBEITSVERHAELTNIS',
+					payload
+				);
 			}
 		},
 		DELETE_DB: {
 			DELETE_EMPLOYEE: async (payload) => {
 				return await sendOffscreenDataMessage('DELETE_DB', 'DELETE_EMPLOYEE', payload);
+			},
+			DELETE_EMPLOYEE_FERIENANSPRUCH: async (payload) => {
+				return await sendOffscreenDataMessage(
+					'DELETE_DB',
+					'DELETE_EMPLOYEE_FERIENANSPRUCH',
+					payload
+				);
+			},
+			DELETE_EMPLOYEE_ARBEITSVERHAELTNIS: async (payload) => {
+				return await sendOffscreenDataMessage(
+					'DELETE_DB',
+					'DELETE_EMPLOYEE_ARBEITSVERHAELTNIS',
+					payload
+				);
 			}
 		}
 	});

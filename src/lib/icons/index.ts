@@ -33,7 +33,10 @@ export {
 	Coffee,
 	Heart,
 	Globe,
-	Trash
+	Trash,
+	Download,
+	Upload,
+	TriangleAlert
 } from '@lucide/svelte';
 
 // Re-export types

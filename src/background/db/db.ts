@@ -12,7 +12,7 @@ const migrationFiles = import.meta.glob('./migrations/*.sql', {
 });
 
 // 2. Initialize SQLocal (handles the Web Worker and OPFS automatically)
-const client = new SQLocalDrizzle('sbb-utility.sqlite');
+export const client = new SQLocalDrizzle('sbb-utility.sqlite');
 
 // 3. Connect Drizzle via the proxy driver
 export const db = drizzle(client.driver, client.batchDriver, {
