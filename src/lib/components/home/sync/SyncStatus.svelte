@@ -17,7 +17,7 @@
 	}
 </script>
 
-<div class="rounded-xl bg-base-100 p-3 shadow-xl">
+<div class="rounded-xl bg-base-100 p-3 border border-base-300 shadow-sm">
 	<div class="text font-bold text-3xl">
 		{m.sync_title()}
 	</div>

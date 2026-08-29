@@ -24,7 +24,7 @@
 
 	const classes = $derived(
 		[
-			'card bg-base-200 shadow-xl',
+			'card bg-base-200 border border-base-300 shadow-sm',
 			bordered && 'card-bordered',
 			imageFull && 'image-full',
 			className
