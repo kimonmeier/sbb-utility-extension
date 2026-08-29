@@ -3,6 +3,10 @@
 	import { theme, initializeTheme } from './lib/stores/theme';
 	import { locale } from './lib/stores/locale';
 	import { currentPage } from './lib/stores/navigation';
+	import { initDatabaseAndMigrate } from './background/db/db';
+	import { alertQueue, currentAlert } from './lib/stores/alert';
+	import type { Unsubscriber } from 'svelte/store';
+	import AlertManager from './lib/components/AlertManager.svelte';
 
 	import Nav from './lib/components/Nav.svelte';
 
@@ -10,10 +14,6 @@
 	import HomePage from './lib/pages/HomePage.svelte';
 	import EmployeePage from './lib/pages/EmployeePage.svelte';
 	import SettingsPage from './lib/pages/SettingsPage.svelte';
-	import { initDatabaseAndMigrate } from './background/db/db';
-	import { alertQueue, currentAlert } from './lib/stores/alert';
-	import type { Unsubscriber } from 'svelte/store';
-	import AlertManager from './lib/components/AlertManager.svelte';
 
 	let alertQueueUnsubscribe: Unsubscriber | null = null;
 
@@ -44,11 +44,11 @@
 			<main class="p-4 pb-20 flex-1 overflow-y-auto">
 				<!-- Page Content -->
 				<div class="max-w-4xl mx-auto">
-					{#if $currentPage === 'home'}
+					{#if $currentPage.currentPage === 'home'}
 						<HomePage />
-					{:else if $currentPage === 'employees'}
+					{:else if $currentPage.currentPage === 'employees'}
 						<EmployeePage />
-					{:else if $currentPage === 'settings'}
+					{:else if $currentPage.currentPage === 'settings'}
 						<SettingsPage />
 					{/if}
 				</div>

@@ -1,6 +1,6 @@
 <script lang="ts">
 	interface Props {
-		type?: 'text' | 'email' | 'password' | 'number' | 'tel' | 'url' | 'search';
+		type?: 'text' | 'email' | 'password' | 'number' | 'tel' | 'url' | 'search' | 'date';
 		value?: string | number;
 		placeholder?: string;
 		size?: 'xs' | 'sm' | 'md' | 'lg';
@@ -18,6 +18,8 @@
 		id?: string;
 		name?: string;
 		required?: boolean;
+		min?: number;
+		max?: number;
 		oninput?: (e: Event) => void;
 	}
 
@@ -40,6 +42,8 @@
 		id,
 		name,
 		required = false,
+		min,
+		max,
 		oninput,
 		...rest
 	}: Props = $props();
@@ -73,6 +77,8 @@
 	{name}
 	{required}
 	{oninput}
+	{min}
+	{max}
 	class={classes}
 	{...rest}
 />

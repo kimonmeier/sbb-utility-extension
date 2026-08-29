@@ -7,9 +7,33 @@ type QueryRequest = {
 			error?: string;
 		};
 	};
+	GET_EMPLOYEE_BY_ID: {
+		payload: { employeeId: string };
+		response: {
+			success: boolean;
+			employee?: { id: string; name: string; employeeIdentification: string };
+			error?: string;
+		};
+	};
 	GET_TOUREN: {
 		payload: undefined;
 		response: { success: boolean; touren?: { id: string; name: string }[]; error?: string };
+	};
+	GET_EMPLOYEE_FERIENANSPRUCH: {
+		payload: { employeeId: string };
+		response: {
+			success: boolean;
+			ferienanspruch?: { id: string; jahr: number; ferienAnspruchInTagen: number }[];
+			error?: string;
+		};
+	};
+	GET_EMPLOYEE_ARBEITSVERHAELTNIS: {
+		payload: { employeeId: string };
+		response: {
+			success: boolean;
+			arbeitsverhaeltnisse?: { id: string; von: Date; bis: Date | null; pensumProzent: number }[];
+			error?: string;
+		};
 	};
 };
 
@@ -28,6 +52,14 @@ type PostCommandRequest = {
 		payload: { name: string; employeeIdentification: string };
 		response: { success: boolean; error?: string };
 	};
+	UPSERT_EMPLOYEE_FERIENANSPRUCH: {
+		payload: { employeeId: string; jahr: number; ferienAnspruchInTagen: number };
+		response: { success: boolean; error?: string };
+	};
+	INSERT_EMPLOYEE_ARBEITSVERHAELTNIS: {
+		payload: { employeeId: string; von: Date; pensumProzent: number };
+		response: { success: boolean; error?: string };
+	};
 };
 
 type PostCommandRequestType = keyof PostCommandRequest;
@@ -43,6 +75,14 @@ export type PostCommandMessage = {
 type DeleteCommandRequest = {
 	DELETE_EMPLOYEE: {
 		payload: { employeeId: string };
+		response: { success: boolean; error?: string };
+	};
+	DELETE_EMPLOYEE_FERIENANSPRUCH: {
+		payload: { id: string };
+		response: { success: boolean; error?: string };
+	};
+	DELETE_EMPLOYEE_ARBEITSVERHAELTNIS: {
+		payload: { id: string };
 		response: { success: boolean; error?: string };
 	};
 };

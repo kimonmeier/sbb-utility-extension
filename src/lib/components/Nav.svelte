@@ -7,7 +7,7 @@
 <aside class="h-16 bg-base-200 p-2 bottom-0 border-base-300 fixed w-full border-t">
 	<nav class="gap-4 flex flex-row justify-center">
 		{#each MENU_ITEMS as item (item.page)}
-			{@const isActive = item.page === $currentPage}
+			{@const isActive = item.page === $currentPage.currentPage}
 			<button
 				class="btn btn-ghost btn-square {isActive ? 'btn-active' : ''}"
 				onclick={item.action}

@@ -32,7 +32,8 @@ export {
 	PersonStanding,
 	Coffee,
 	Heart,
-	Globe
+	Globe,
+	Trash
 } from '@lucide/svelte';
 
 // Re-export types

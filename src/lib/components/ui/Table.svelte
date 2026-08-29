@@ -1,14 +1,16 @@
-<script lang="ts" generics="T extends { id: string }">
+<script lang="ts" generics="T extends { id: string}">
 	import Icon from '$lib/components/Icon.svelte';
 	import Button from './Button.svelte';
 	import type { ColumnDefinition } from './Table.svelte.ts';
 
 	let {
 		data,
-		columnDefinition
+		columnDefinition,
+		onClick
 	}: {
 		data: T[];
 		columnDefinition: ColumnDefinition<T>[];
+		onClick?: (row: T) => void;
 	} = $props();
 
 	function handleSort(column: ColumnDefinition<T>) {
@@ -30,8 +32,8 @@
 		});
 	}
 
-	let sortedRows = $derived(() => {
-		return data.sort((a, b) => {
+	let sortedRows = $derived.by(() => {
+		return [...data].sort((a, b) => {
 			const sortedColumn = columnDefinition.find((col) => col.sortDirection);
 			if (!sortedColumn) {
 				return 0;
@@ -56,8 +58,8 @@
 		</tr>
 	</thead>
 	<tbody>
-		{#each sortedRows() as row (row.id)}
-			<tr>
+		{#each sortedRows as row (row.id)}
+			<tr onclick={() => onClick?.(row)} class="hover hover:bg-base-200 cursor-pointer">
 				{#each columnDefinition as column (column.header)}
 					{#if column.type === 'button'}
 						<td>

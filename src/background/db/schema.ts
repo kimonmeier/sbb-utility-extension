@@ -59,6 +59,37 @@ export const zeitkontenSnapshots = sqliteTable(
 	(table) => [unique().on(table.employee, table.snapshotDate, table.sapLeaveTypeId)]
 );
 
+export type SBBUtilityEmployeeFerienanspruch = typeof employeeFerienanspruch.$inferInsert;
+
+export const employeeFerienanspruch = sqliteTable(
+	'employee_ferienanspruch',
+	{
+		id: text('id')
+			.primaryKey()
+			.$defaultFn(() => crypto.randomUUID()),
+		employee: text('employee_id')
+			.notNull()
+			.references(() => employee.id, { onDelete: 'cascade' }),
+		jahr: integer('jahr').notNull(),
+		ferienAnspruchInTagen: integer('ferien_anspruch_in_tagen').notNull()
+	},
+	(table) => [unique().on(table.employee, table.jahr)]
+);
+
+export type SBBUtilityEmployeeArbeitsverhaeltnis = typeof employeeArbeitsverhaeltnis.$inferInsert;
+
+export const employeeArbeitsverhaeltnis = sqliteTable('employee_arbeitsverhaeltnis', {
+	id: text('id')
+		.primaryKey()
+		.$defaultFn(() => crypto.randomUUID()),
+	employee: text('employee_id')
+		.notNull()
+		.references(() => employee.id, { onDelete: 'cascade' }),
+	von: integer('von', { mode: 'timestamp' }).notNull(),
+	bis: integer('bis', { mode: 'timestamp' }),
+	pensumProzent: integer('pensum_prozent').notNull()
+});
+
 export const arbeitszeitManualKuerzungen = sqliteTable(
 	'arbeitszeit_manual_kuerzungen',
 	{
