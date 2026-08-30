@@ -22,7 +22,7 @@ async function setupOffscreenDocument() {
 	});
 }
 
-chrome.runtime.onInstalled.addListener(async () => {
+async function initWorker() {
 	await setupOffscreenDocument();
 
 	const initResult = await sendOffscreenMessage('INIT_DB');
@@ -52,8 +52,6 @@ chrome.runtime.onInstalled.addListener(async () => {
 		IMPORT_DB_JSON: async (payload) => {
 			return await sendOffscreenMessage('IMPORT_DB_JSON', payload);
 		},
-		// Example: fan out a data message by its `dbType` and forward it to the
-		// offscreen document, where the actual SQLite access happens.
 		QUERY_DB: {
 			GET_EPMLOYEES: async () => {
 				return await sendOffscreenDataMessage('QUERY_DB', 'GET_EPMLOYEES');
@@ -122,6 +120,14 @@ chrome.runtime.onInstalled.addListener(async () => {
 	});
 
 	console.log('Database initialized in offscreen document:', initResult);
+}
+
+chrome.runtime.onStartup.addListener(async () => {
+	await initWorker();
+});
+
+chrome.runtime.onInstalled.addListener(async () => {
+	await initWorker();
 });
 
 chrome.webRequest.onBeforeSendHeaders.addListener(
