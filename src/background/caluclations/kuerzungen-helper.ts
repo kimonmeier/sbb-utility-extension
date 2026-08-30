@@ -42,7 +42,7 @@ function assignKuerzungenKompensationstage(
 	for (let i = 0; i < anzahlTageZumKuerzen; i++) {
 		const abwesenheit = abwesenheiten[i];
 		if (abwesenheit) {
-			kuerzungen.set(abwesenheit.datum, '9046');
+			kuerzungen.set(abwesenheit.datum.getTime(), '9046');
 		}
 	}
 
@@ -63,7 +63,7 @@ function assignKuerzungenRuhetage(
 	for (let i = anzahlTageZumKuerzen; i < anzahlTageZumKuerzen * 2; i++) {
 		const abwesenheit = abwesenheiten[i];
 		if (abwesenheit) {
-			kuerzungen.set(abwesenheit.datum, '9047');
+			kuerzungen.set(abwesenheit.datum.getTime(), '9047');
 		}
 	}
 
@@ -101,7 +101,7 @@ function assignKuerzungenFerien(
 	for (let i = anzahlTageZumKuerzen * 2; i < anzahlTageZumKuerzen * 3; i++) {
 		const abwesenheit = abwesenheiten[i];
 		if (abwesenheit) {
-			kuerzungen.set(abwesenheit.datum, '9040');
+			kuerzungen.set(abwesenheit.datum.getTime(), '9040');
 		}
 	}
 

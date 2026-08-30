@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm';
+import { and, eq, gte, lte } from 'drizzle-orm';
 import { synchronizeTourenForAllEmployees } from './api/syncLogic';
 import { db, initDatabaseAndMigrate } from './db/db';
 import {
@@ -8,9 +8,22 @@ import {
 	importDatabaseFromJson,
 	resetDatabase
 } from './db/backup';
-import { employee, employeeArbeitsverhaeltnis, employeeFerienanspruch } from './db/schema';
+import {
+	employee,
+	employeeArbeitsverhaeltnis,
+	employeeFerienanspruch,
+	touren,
+	zeitkontenSnapshots
+} from './db/schema';
 import { createOffscreenListener } from './messages/messageReciever';
 import { arrayBufferToBase64, base64ToArrayBuffer } from '$lib/utils/base64';
+import { CalulcationEngine } from './caluclations/engine';
+import type { CalculationLogEntry } from './caluclations/rules/types';
+import { RUHETAGE_SOLL, type AccountId } from './caluclations/types';
+import { countSaturdaysInYear } from './caluclations/date-helper';
+import { isKompensationstagType, isRuhetagType } from './caluclations/tour-helper';
+import { collectFerienChargeTargets } from './caluclations/holiday-schedule';
+import { collectKuerzungenChargeTargets } from './caluclations/kuerzungen-helper';
 
 createOffscreenListener({
 	INIT_DB: async () => {
@@ -169,6 +182,158 @@ createOffscreenListener({
 				};
 			} catch (error) {
 				console.error('Error querying employeeArbeitsverhaeltnis:', error);
+				return { success: false, error: String(error) };
+			}
+		},
+		GET_ALL_EMPLOYEE_CALUCULATION: async () => {
+			try {
+				const employees = await db.query.employee.findMany();
+
+				const results: {
+					id: string;
+					name: string;
+					employeeId: string;
+					ruhetage: number;
+					kompensationstage: number;
+					ferien: number;
+					logs: CalculationLogEntry[];
+				}[] = [];
+				for (const employee of employees) {
+					const engine = new CalulcationEngine();
+
+					// TODO: Make the year dynamic instead of hardcoding 2026
+					const allTouren = await db
+						.select()
+						.from(touren)
+						.where(
+							and(
+								eq(touren.employee, employee.id),
+								gte(touren.datum, new Date('2026-01-01')),
+								lte(touren.datum, new Date('2026-12-31'))
+							)
+						);
+					const ferienanspruch = await db.query.employeeFerienanspruch.findFirst({
+						where: (entry) => and(eq(entry.employee, employee.id), eq(entry.jahr, 2026))
+					});
+
+					engine.initContext(allTouren, 2026, ferienanspruch?.ferienAnspruchInTagen ?? 0);
+					const scores = engine.calculateScores(allTouren);
+
+					results.push({
+						id: employee.id,
+						name: employee.name,
+						employeeId: employee.employeeId,
+						ruhetage: scores.ruhetage,
+						kompensationstage: scores.kompensationstage,
+						ferien: scores.ferien,
+						logs: scores.log
+					});
+				}
+
+				return {
+					success: true,
+					calculations: results
+				};
+			} catch (error) {
+				console.error('Error calculating employee calculations:', error);
+				return { success: false, error: String(error) };
+			}
+		},
+		GET_EMPLOYEE_CALUCULATION: async (payload) => {
+			try {
+				const year = payload.year ?? 2026;
+				const employeeRecord = await db.query.employee.findFirst({
+					where: eq(employee.id, payload.employeeId)
+				});
+
+				if (!employeeRecord) {
+					return { success: false, error: 'Employee not found' };
+				}
+
+				const yearTouren = await db
+					.select()
+					.from(touren)
+					.where(
+						and(
+							eq(touren.employee, payload.employeeId),
+							gte(touren.datum, new Date(`${year}-01-01`)),
+							lte(touren.datum, new Date(`${year}-12-31`))
+						)
+					);
+				const ferienanspruch = await db.query.employeeFerienanspruch.findFirst({
+					where: (entry) => and(eq(entry.employee, payload.employeeId), eq(entry.jahr, year))
+				});
+
+				const engine = new CalulcationEngine();
+				engine.initContext(yearTouren, year, ferienanspruch?.ferienAnspruchInTagen ?? 0);
+				const scores = engine.calculateScores(yearTouren);
+
+				const ferienChargeTargets = collectFerienChargeTargets(yearTouren);
+				const ferienAnteil = { ruhetage: 0, kompensationstage: 0 };
+				for (const account of ferienChargeTargets.values()) {
+					if (account === '9047') {
+						ferienAnteil.ruhetage += 1;
+					} else if (account === '9046') {
+						ferienAnteil.kompensationstage += 1;
+					}
+				}
+
+				const kuerzungenChargeTargets = collectKuerzungenChargeTargets(
+					yearTouren,
+					year,
+					ferienanspruch?.ferienAnspruchInTagen ?? 0
+				);
+				const kuerzungen = { ruhetage: 0, kompensationstage: 0, ferien: 0 };
+				for (const account of kuerzungenChargeTargets.values()) {
+					if (account === '9047') {
+						kuerzungen.ruhetage += 1;
+					} else if (account === '9046') {
+						kuerzungen.kompensationstage += 1;
+					} else if (account === '9040') {
+						kuerzungen.ferien += 1;
+					}
+				}
+
+				const geplant = {
+					ruhetage: yearTouren.filter((tour) => isRuhetagType(tour.abkuerzung)).length,
+					kompensationstage: yearTouren.filter((tour) => isKompensationstagType(tour.abkuerzung))
+						.length
+				};
+
+				const snapshots = await db.query.zeitkontenSnapshots.findMany({
+					where: eq(zeitkontenSnapshots.employee, payload.employeeId)
+				});
+				const latestSnapshotByAccount = new Map<string, (typeof snapshots)[number]>();
+				for (const snapshot of snapshots) {
+					const existing = latestSnapshotByAccount.get(snapshot.sapLeaveTypeId);
+					if (!existing || snapshot.snapshotDate > existing.snapshotDate) {
+						latestSnapshotByAccount.set(snapshot.sapLeaveTypeId, snapshot);
+					}
+				}
+				const aktuell: Partial<Record<AccountId, number>> = {};
+				for (const [accountId, snapshot] of latestSnapshotByAccount.entries()) {
+					aktuell[accountId as AccountId] = Number(snapshot.anzahl);
+				}
+
+				return {
+					success: true,
+					calculation: {
+						year,
+						scores: {
+							ferien: scores.ferien,
+							kompensationstage: scores.kompensationstage,
+							ruhetage: scores.ruhetage
+						},
+						soll: { ruhetage: RUHETAGE_SOLL, kompensationstage: countSaturdaysInYear(year) },
+						geplant,
+						ferienAnteil,
+						aktuell,
+						kuerzungen,
+						log: scores.log
+					}
+				};
+			} catch (error) {
+				console.error('Error calculating employee calculation:', error);
 				return { success: false, error: String(error) };
 			}
 		}

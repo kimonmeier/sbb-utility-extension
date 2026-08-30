@@ -12,7 +12,7 @@ export const ferienRule: ProjectionRuleDefinition = {
 	name: 'Ferien',
 	matches: (tour) => tour.abkuerzung === SopreTourType.FERIEN,
 	apply: (tour, ctx) => {
-		const targetAccount = ctx.ferienChargeTargets.get(tour.datum);
+		const targetAccount = ctx.ferienChargeTargets.get(tour.datum.getTime());
 		if (!targetAccount) {
 			return { kind: 'ignore', reason: 'Ferien-Tag konnte nicht zugeordnet werden' };
 		}

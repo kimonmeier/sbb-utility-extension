@@ -6,7 +6,7 @@ export const kuerzungenRule: ProjectionRuleDefinition = {
 	name: 'Kürzungen',
 	matches: (tour) => isAbwesend(tour.abkuerzung),
 	apply: (tour, ctx) => {
-		const targetAccount = ctx.kuerzungenChargeTargets.get(tour.datum);
+		const targetAccount = ctx.kuerzungenChargeTargets.get(tour.datum.getTime());
 		if (!targetAccount) {
 			return { kind: 'ignore', reason: 'Kuürzung-Tag konnte nicht zugeordnet werden' };
 		}

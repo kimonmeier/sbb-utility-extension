@@ -1,3 +1,6 @@
+import type { CalculationLogEntry } from '$background/caluclations/rules/types';
+import type { AccountId } from '$background/caluclations/types';
+
 type QueryRequest = {
 	GET_EPMLOYEES: {
 		payload: undefined;
@@ -32,6 +35,39 @@ type QueryRequest = {
 		response: {
 			success: boolean;
 			arbeitsverhaeltnisse?: { id: string; von: Date; bis: Date | null; pensumProzent: number }[];
+			error?: string;
+		};
+	};
+	GET_ALL_EMPLOYEE_CALUCULATION: {
+		payload: undefined;
+		response: {
+			success: boolean;
+			calculations?: {
+				id: string;
+				name: string;
+				employeeId: string;
+				ruhetage: number;
+				kompensationstage: number;
+				ferien: number;
+				logs: CalculationLogEntry[];
+			}[];
+			error?: string;
+		};
+	};
+	GET_EMPLOYEE_CALUCULATION: {
+		payload: { employeeId: string; year?: number };
+		response: {
+			success: boolean;
+			calculation?: {
+				year: number;
+				scores: { ferien: number; kompensationstage: number; ruhetage: number };
+				soll: { ruhetage: number; kompensationstage: number };
+				geplant: { ruhetage: number; kompensationstage: number };
+				ferienAnteil: { ruhetage: number; kompensationstage: number };
+				kuerzungen: { ruhetage: number; kompensationstage: number; ferien: number };
+				aktuell: Partial<Record<AccountId, number>>;
+				log: CalculationLogEntry[];
+			};
 			error?: string;
 		};
 	};

@@ -10,12 +10,13 @@
 	import AlertManager from './lib/components/AlertManager.svelte';
 	import { DURATION_BASE, DURATION_FAST } from './lib/utils/motion';
 
-	import Nav from './lib/components/Nav.svelte';
+	import Nav from '$lib/components/Nav.svelte';
 
 	// Pages
-	import HomePage from './lib/pages/HomePage.svelte';
-	import EmployeePage from './lib/pages/EmployeePage.svelte';
-	import SettingsPage from './lib/pages/SettingsPage.svelte';
+	import HomePage from '$lib/pages/HomePage.svelte';
+	import EmployeePage from '$lib/pages/EmployeePage.svelte';
+	import SettingsPage from '$lib/pages/SettingsPage.svelte';
+	import CaluclationPage from '$lib/pages/CaluclationPage.svelte';
 
 	let alertQueueUnsubscribe: Unsubscriber | null = null;
 
@@ -55,6 +56,8 @@
 								<HomePage />
 							{:else if $currentPage.currentPage === 'employees'}
 								<EmployeePage />
+							{:else if $currentPage.currentPage === 'caluclations'}
+								<CaluclationPage />
 							{:else if $currentPage.currentPage === 'settings'}
 								<SettingsPage />
 							{/if}

@@ -2,6 +2,9 @@ import type { touren, zeitkontenSnapshots } from '$background/db/schema';
 
 export const TRACKED_ACCOUNT_IDS = ['5', '9040', '9046', '9047', '9054'] as const;
 
+/** Ziffer 72 GAV: fester Ruhetage-Sollwert pro Jahr. */
+export const RUHETAGE_SOLL = 63;
+
 export type AccountId = (typeof TRACKED_ACCOUNT_IDS)[number];
 export type TourRow = typeof touren.$inferSelect;
 export type SnapshotRow = typeof zeitkontenSnapshots.$inferSelect;

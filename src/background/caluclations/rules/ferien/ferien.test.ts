@@ -5,17 +5,24 @@ import { ferienRule } from './ferien';
 import type { RuleContext } from '$background/caluclations/rules/types';
 import { collectFerienChargeTargets } from '$background/caluclations/holiday-schedule';
 
-function tour(abkuerzung: TourRow['abkuerzung'], datum: TourRow['datum'] = 0): TourRow {
+function tour(abkuerzung: TourRow['abkuerzung'], datum: TourRow['datum'] = new Date(0)): TourRow {
 	return { abkuerzung, datum } as TourRow;
 }
 
 function ctxWithTarget(datum: number, target: FerienChargeAccount): RuleContext {
-	return { ferienChargeTargets: new Map([[datum, target]]), kuerzungenChargeTargets: new Map() };
+	return {
+		ferienChargeTargets: new Map([[datum, target]]),
+		kuerzungenChargeTargets: new Map(),
+		anzahlFerienAnspruchInTagen: 0,
+		year: 2024
+	};
 }
 
 const emptyCtx: RuleContext = {
 	ferienChargeTargets: new Map(),
-	kuerzungenChargeTargets: new Map()
+	kuerzungenChargeTargets: new Map(),
+	anzahlFerienAnspruchInTagen: 0,
+	year: 2024
 };
 
 describe('ferienRule', () => {
@@ -40,7 +47,7 @@ describe('ferienRule', () => {
 		['9047', 'Ferienregel -> 9047 (-1 Ruhetag)']
 	])('applies -1 to account %s when a charge target is assigned', (target, expectedRule) => {
 		const datum = datumToDate(20240101);
-		const ctx = ctxWithTarget(datum, target);
+		const ctx = ctxWithTarget(datum.getTime(), target);
 
 		expect(ferienRule.apply(tour(SopreTourType.FERIEN, datum), ctx)).toEqual({
 			kind: 'apply',
@@ -51,7 +58,7 @@ describe('ferienRule', () => {
 	});
 
 	it('looks up the charge target using the tour date, not any assigned date', () => {
-		const ctx = ctxWithTarget(datumToDate(20240101), '9040');
+		const ctx = ctxWithTarget(datumToDate(20240101).getTime(), '9040');
 
 		expect(ferienRule.apply(tour(SopreTourType.FERIEN, datumToDate(20240102)), ctx)).toEqual({
 			kind: 'ignore',
@@ -62,11 +69,13 @@ describe('ferienRule', () => {
 	it('correctly groups the ferien charge targets by date', () => {
 		const ctx: RuleContext = {
 			ferienChargeTargets: new Map([
-				[datumToDate(20240101), '9040'],
-				[datumToDate(20240102), '9046'],
-				[datumToDate(20240103), '9047']
+				[datumToDate(20240101).getTime(), '9040'],
+				[datumToDate(20240102).getTime(), '9046'],
+				[datumToDate(20240103).getTime(), '9047']
 			]),
-			kuerzungenChargeTargets: new Map()
+			kuerzungenChargeTargets: new Map(),
+			anzahlFerienAnspruchInTagen: 0,
+			year: 2024
 		};
 
 		expect(ferienRule.apply(tour(SopreTourType.FERIEN, datumToDate(20240101)), ctx)).toEqual({
@@ -197,12 +206,12 @@ describe('ferienRule', () => {
 	});
 });
 
-function datumToDate(datum: number): number {
+function datumToDate(datum: number): Date {
 	const datumStr = datum.toString();
 	const year = parseInt(datumStr.slice(0, 4), 10);
 	const month = parseInt(datumStr.slice(4, 6), 10) - 1;
 	const day = parseInt(datumStr.slice(6, 8), 10);
-	return new Date(year, month, day).getTime();
+	return new Date(year, month, day);
 }
 
 function createEmptyTour(abkuerzung: SopreTourType, datum: number): TourRow {
@@ -212,6 +221,8 @@ function createEmptyTour(abkuerzung: SopreTourType, datum: number): TourRow {
 function createContext(tours: TourRow[]): RuleContext {
 	return {
 		ferienChargeTargets: collectFerienChargeTargets(tours),
-		kuerzungenChargeTargets: new Map()
+		kuerzungenChargeTargets: new Map(),
+		anzahlFerienAnspruchInTagen: 0,
+		year: 2024
 	};
 }

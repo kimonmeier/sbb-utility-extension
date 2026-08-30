@@ -19,7 +19,7 @@ export const touren = sqliteTable(
 		id: text('id')
 			.primaryKey()
 			.$defaultFn(() => crypto.randomUUID()),
-		datum: integer('datum').notNull(),
+		datum: integer('datum', { mode: 'timestamp' }).notNull(),
 		employee: text('employee_id')
 			.notNull()
 			.references(() => employee.id, { onDelete: 'cascade' }),

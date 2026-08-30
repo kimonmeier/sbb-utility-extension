@@ -5,25 +5,32 @@ import { kuerzungenRule } from './kuerzungen';
 import type { RuleContext } from '$background/caluclations/rules/types';
 import { collectKuerzungenChargeTargets } from '$background/caluclations/kuerzungen-helper';
 
-function tour(abkuerzung: TourRow['abkuerzung'], datum: TourRow['datum'] = 0): TourRow {
+function tour(abkuerzung: TourRow['abkuerzung'], datum: TourRow['datum'] = new Date(0)): TourRow {
 	return { abkuerzung, datum } as TourRow;
 }
 
 function ctxWithTarget(datum: number, target: AccountId): RuleContext {
-	return { ferienChargeTargets: new Map(), kuerzungenChargeTargets: new Map([[datum, target]]) };
+	return {
+		ferienChargeTargets: new Map(),
+		kuerzungenChargeTargets: new Map([[datum, target]]),
+		anzahlFerienAnspruchInTagen: 0,
+		year: 2024
+	};
 }
 
 const emptyCtx: RuleContext = {
 	ferienChargeTargets: new Map(),
-	kuerzungenChargeTargets: new Map()
+	kuerzungenChargeTargets: new Map(),
+	anzahlFerienAnspruchInTagen: 0,
+	year: 2024
 };
 
-function datumToDate(datum: number): number {
+function datumToDate(datum: number): Date {
 	const datumStr = datum.toString();
 	const year = parseInt(datumStr.slice(0, 4), 10);
 	const month = parseInt(datumStr.slice(4, 6), 10) - 1;
 	const day = parseInt(datumStr.slice(6, 8), 10);
-	return new Date(year, month, day).getTime();
+	return new Date(year, month, day);
 }
 
 describe('kuerzungenRule', () => {
@@ -38,6 +45,10 @@ describe('kuerzungenRule', () => {
 		expect(kuerzungenRule.matches(tour(SopreTourType.UNBEZAHLTER_URLAUB), emptyCtx)).toBe(true);
 	});
 
+	it('matches unbezahlten Urlaub (Ziffer 29 Abs. 1)', () => {
+		expect(kuerzungenRule.matches(tour(SopreTourType.NICHTBERUFSUNFALL), emptyCtx)).toBe(true);
+	});
+
 	it('ignores the day when no charge target is assigned', () => {
 		expect(
 			kuerzungenRule.apply(tour(SopreTourType.KRANK, datumToDate(20240101)), emptyCtx)
@@ -49,7 +60,7 @@ describe('kuerzungenRule', () => {
 
 	it('ignores the day when the charge target is not a Kürzungskonto', () => {
 		const datum = datumToDate(20240101);
-		const ctx = ctxWithTarget(datum, '5');
+		const ctx = ctxWithTarget(datum.getTime(), '5');
 
 		expect(kuerzungenRule.apply(tour(SopreTourType.KRANK, datum), ctx)).toEqual({
 			kind: 'ignore',
@@ -63,7 +74,7 @@ describe('kuerzungenRule', () => {
 		['9047', 'Kuerzung Ruhetag (9047 -1)']
 	])('applies -1 to account %s when a charge target is assigned', (target, expectedRule) => {
 		const datum = datumToDate(20240101);
-		const ctx = ctxWithTarget(datum, target);
+		const ctx = ctxWithTarget(datum.getTime(), target);
 
 		expect(kuerzungenRule.apply(tour(SopreTourType.KRANK, datum), ctx)).toEqual({
 			kind: 'apply',
@@ -74,7 +85,7 @@ describe('kuerzungenRule', () => {
 	});
 
 	it('looks up the charge target using the tour date, not any assigned date', () => {
-		const ctx = ctxWithTarget(datumToDate(20240101), '9047');
+		const ctx = ctxWithTarget(datumToDate(20240101).getTime(), '9047');
 
 		expect(kuerzungenRule.apply(tour(SopreTourType.KRANK, datumToDate(20240102)), ctx)).toEqual({
 			kind: 'ignore',
@@ -100,7 +111,7 @@ describe('collectKuerzungenChargeTargets', () => {
 		return Array.from({ length: count }, (_, i) => {
 			const datum = new Date(start);
 			datum.setDate(datum.getDate() + i);
-			return { abkuerzung: type, datum: datum.getTime() } as TourRow;
+			return { abkuerzung: type, datum } as TourRow;
 		});
 	}
 

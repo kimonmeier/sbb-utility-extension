@@ -145,6 +145,9 @@ const TOUR_TYPE_BY_CODE: Record<string, SopreTourType> = {
 	RTP: SopreTourType.GUTHABEN_RUHETAG_PERSONAL,
 	CTP: SopreTourType.GUTHABEN_KOMPENSATIONSTAG_PERSONAL,
 	UUZ: SopreTourType.WOHNUNGSWECHSEL,
+	NBU: SopreTourType.NICHTBERUFSUNFALL,
+	BU: SopreTourType.BERUFSUNFALL,
+	UUB: SopreTourType.UNBEZAHLTER_URLAUB,
 	F: SopreTourType.FERIEN
 };
 
@@ -197,7 +200,7 @@ async function processTourenData(
 	return Promise.all(
 		tourItems.map(async (item) => {
 			const tour = createBaseTour(item, userId);
-			const existingTour = existingTourenByDay.get(tour.datum);
+			const existingTour = existingTourenByDay.get(tour.datum.getTime());
 
 			if (item.dayOff) {
 				tour.abkuerzung = parseTourType(item.abkuerzung!);
@@ -298,16 +301,22 @@ async function fetchExistingTourenByDay(
 	}
 
 	const existingTouren = await db.query.touren.findMany({
-		where: and(eq(touren.employee, employeeId), inArray(touren.datum, days))
+		where: and(
+			eq(touren.employee, employeeId),
+			inArray(
+				touren.datum,
+				days.map((day) => new Date(day))
+			)
+		)
 	});
 
-	return new Map(existingTouren.map((row) => [row.datum, row]));
+	return new Map(existingTouren.map((row) => [row.datum.getTime(), row]));
 }
 
 function deduplicateTourenByDay(tours: SBBUtilityTouren[]): SBBUtilityTouren[] {
 	const tourenByDay = new Map<number, SBBUtilityTouren>();
 	for (const row of tours) {
-		tourenByDay.set(row.datum, row);
+		tourenByDay.set(row.datum.getTime(), row);
 	}
 
 	return Array.from(tourenByDay.values());
@@ -319,8 +328,8 @@ async function upsertTourenForUser(
 	existingTourenByDay: Map<number, PersistedTour>
 ) {
 	const existingDays = new Set(existingTourenByDay.keys());
-	const toInsert = processedTouren.filter((row) => !existingDays.has(row.datum));
-	const toUpdate = processedTouren.filter((row) => existingDays.has(row.datum));
+	const toInsert = processedTouren.filter((row) => !existingDays.has(row.datum.getTime()));
+	const toUpdate = processedTouren.filter((row) => existingDays.has(row.datum.getTime()));
 
 	if (toInsert.length > 0) {
 		await db.insert(touren).values(toInsert);
@@ -358,7 +367,7 @@ function buildTourUpdatePayload(row: SBBUtilityTouren) {
 function createBaseTour(item: TourItem, employeeId: string): SBBUtilityTouren {
 	return {
 		id: crypto.randomUUID(),
-		datum: parseZonedDateTime(item.date).getTime(),
+		datum: parseZonedDateTime(item.date),
 		employee: employeeId,
 		abkuerzung: SopreTourType.UNBEKANNT
 	};

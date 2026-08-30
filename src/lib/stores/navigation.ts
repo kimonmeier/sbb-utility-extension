@@ -5,7 +5,7 @@ export interface NavigationState {
 	detailId?: string;
 }
 
-export type PageType = 'home' | 'employees' | 'settings';
+export type PageType = 'home' | 'employees' | 'caluclations' | 'settings';
 
 export const currentPage = writable<NavigationState>({
 	currentPage: 'home'

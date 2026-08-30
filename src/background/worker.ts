@@ -73,6 +73,12 @@ chrome.runtime.onInstalled.addListener(async () => {
 					'GET_EMPLOYEE_ARBEITSVERHAELTNIS',
 					payload
 				);
+			},
+			GET_ALL_EMPLOYEE_CALUCULATION: async () => {
+				return await sendOffscreenDataMessage('QUERY_DB', 'GET_ALL_EMPLOYEE_CALUCULATION');
+			},
+			GET_EMPLOYEE_CALUCULATION: async (payload) => {
+				return await sendOffscreenDataMessage('QUERY_DB', 'GET_EMPLOYEE_CALUCULATION', payload);
 			}
 		},
 		INSERT_DB: {

@@ -6,7 +6,7 @@ const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 export function collectFerienChargeTargets(tours: TourRow[]): Map<number, FerienChargeAccount> {
 	const holidays = tours
 		.filter((tour) => tour.abkuerzung === SopreTourType.FERIEN)
-		.map((tour) => tour.datum)
+		.map((tour) => tour.datum.getTime())
 		.sort((a, b) => a - b);
 
 	const targets = new Map<number, FerienChargeAccount>();

@@ -1,24 +1,24 @@
-<script lang="ts" generics="T extends { id: string}">
+<script lang="ts" generics="K">
 	import Icon from '$lib/components/Icon.svelte';
 	import Button from './Button.svelte';
-	import type { ColumnDefinition } from './Table.svelte.ts';
+	import { type ColumnDefinition, type RowDefinition } from './Table.types.ts';
 
 	let {
 		data,
 		columnDefinition,
 		onClick
 	}: {
-		data: T[];
-		columnDefinition: ColumnDefinition<T>[];
-		onClick?: (row: T) => void;
+		data: RowDefinition<K>[];
+		columnDefinition: ColumnDefinition<K>[];
+		onClick?: (row: RowDefinition<K>) => void;
 	} = $props();
 
-	function handleSort(column: ColumnDefinition<T>) {
+	function handleSort(column: ColumnDefinition<K>) {
 		if (!column.allowSorting) {
 			return;
 		}
 
-		columnDefinition = columnDefinition.map<ColumnDefinition<T>>((col) => {
+		columnDefinition = columnDefinition.map<ColumnDefinition<K>>((col) => {
 			if (col === column) {
 				if (!col.sortDirection) {
 					return { ...col, sortDirection: 'asc' };
@@ -41,10 +41,43 @@
 
 			const multiplier = sortedColumn.sortDirection === 'asc' ? 1 : -1;
 
-			return sortedColumn.sortFunction ? sortedColumn.sortFunction(a, b) * multiplier : 0;
+			return sortedColumn.sortFunction ? sortedColumn.sortFunction(a.data, b.data) * multiplier : 0;
 		});
 	});
 </script>
+
+{#snippet row(row: RowDefinition<K>, caluclateClasses: (row: K) => string = () => '')}
+	<tr
+		onclick={() => onClick?.(row)}
+		class="duration-sbb ease-sbb hover:bg-base-200 transition-colors {onClick
+			? 'cursor-pointer'
+			: ''} {caluclateClasses(row.data)}"
+	>
+		{@render rowDisplay(row.data)}
+	</tr>
+{/snippet}
+
+{#snippet rowDisplay(row: K)}
+	{#each columnDefinition as column (column.header)}
+		{#if column.type === 'button'}
+			<td>
+				<Button variant="primary" size="sm" onclick={() => column.onClick(row)}>
+					<Icon icon={column.buttonIcon} size={16} />
+				</Button>
+			</td>
+		{:else if column.type === 'display'}
+			<td>
+				{column.render(row)}
+			</td>
+		{:else if column.type === 'calculated'}
+			<td>
+				{column.calculate(row)}
+			</td>
+		{:else}
+			<td>{row[column.accessor]}</td>
+		{/if}
+	{/each}
+{/snippet}
 
 <table class="table w-full">
 	<thead>
@@ -58,29 +91,8 @@
 		</tr>
 	</thead>
 	<tbody>
-		{#each sortedRows as row (row.id)}
-			<tr
-				onclick={() => onClick?.(row)}
-				class="duration-sbb ease-sbb hover:bg-base-200 transition-colors {onClick
-					? 'cursor-pointer'
-					: ''}"
-			>
-				{#each columnDefinition as column (column.header)}
-					{#if column.type === 'button'}
-						<td>
-							<Button variant="primary" size="sm" onclick={() => column.onClick(row)}>
-								<Icon icon={column.buttonIcon} size={16} />
-							</Button>
-						</td>
-					{:else if column.type === 'display'}
-						<td>
-							{column.render(row)}
-						</td>
-					{:else}
-						<td>{row[column.accessor]}</td>
-					{/if}
-				{/each}
-			</tr>
+		{#each sortedRows as entry (entry.id)}
+			{@render row(entry, entry.calculateClasses)}
 		{/each}
 	</tbody>
 </table>

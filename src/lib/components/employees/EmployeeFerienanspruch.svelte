@@ -4,6 +4,7 @@
 	import { sendWorkerDataMessage } from '$background/messages/messageSender';
 	import { alertQueue } from '$lib/stores/alert';
 	import { Trash } from '$lib/icons';
+	import type { RowDefinition } from '$lib/components/ui/Table.types';
 
 	const props: {
 		employeeId: string;
@@ -12,6 +13,16 @@
 	let entries: { id: string; jahr: number; ferienAnspruchInTagen: number }[] = $state([]);
 	let jahr: string = $state(String(new Date().getFullYear()));
 	let ferienAnspruchInTagen: string = $state('');
+
+	const rowDefinitions = $derived.by(() =>
+		entries.map((entry): RowDefinition<typeof entry> => {
+			return {
+				id: entry.id,
+				data: entry,
+				calculateClasses: () => ''
+			};
+		})
+	);
 
 	async function fetchEntries() {
 		const result = await sendWorkerDataMessage('QUERY_DB', 'GET_EMPLOYEE_FERIENANSPRUCH', {
@@ -77,7 +88,7 @@
 <div class="bg-base-100 rounded-3xl p-4">
 	<h3 class="text-xl w-full text-center">{m.employee_ferien_legend()}</h3>
 	<Table
-		data={entries}
+		data={rowDefinitions}
 		columnDefinition={[
 			{
 				type: 'data',

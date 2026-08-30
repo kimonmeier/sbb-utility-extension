@@ -8,6 +8,8 @@ import type {
 export interface RuleContext {
 	ferienChargeTargets: Map<number, FerienChargeAccount>;
 	kuerzungenChargeTargets: Map<number, AccountId>;
+	anzahlFerienAnspruchInTagen: number;
+	year: number;
 }
 
 export interface ProjectionRuleDefinition {
@@ -19,3 +21,9 @@ export interface ProjectionRuleDefinition {
 export type RuleOutcome =
 	| { kind: 'apply'; accountId: AccountId; rule: ProjectionRule; delta: number }
 	| { kind: 'ignore'; reason: string };
+
+export interface CalculationLogEntry {
+	date: string;
+	tourLabel: string;
+	outcome: RuleOutcome;
+}

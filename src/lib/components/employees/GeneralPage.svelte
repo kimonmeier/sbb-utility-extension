@@ -6,9 +6,20 @@
 	import { Trash, PersonStanding } from '$lib/icons';
 	import { navigateTo } from '@/lib/stores/navigation';
 	import PageHeader from '$lib/components/PageHeader.svelte';
+	import type { RowDefinition } from '$lib/components/ui/Table.types';
 	let employees: { id: string; name: string; employeeIdentification: string }[] = $state([]);
 	let name: string = $state('');
 	let employeeIdentification: string = $state('');
+
+	const rowDefinitions = $derived.by(() =>
+		employees.map((employee): RowDefinition<typeof employee> => {
+			return {
+				id: employee.id,
+				data: employee,
+				calculateClasses: () => ''
+			};
+		})
+	);
 
 	async function fetchEmployees() {
 		const result = await sendWorkerDataMessage('QUERY_DB', 'GET_EPMLOYEES');
@@ -79,7 +90,7 @@
 <PageHeader icon={PersonStanding} title={m.employee_page_title()} />
 <div class="bg-base-100 rounded-t-3xl p-4 mt-4">
 	<Table
-		data={employees}
+		data={rowDefinitions}
 		onClick={(row) => openDetailPage(row.id)}
 		columnDefinition={[
 			{ type: 'data', header: m.employee_table_name(), accessor: 'name' },

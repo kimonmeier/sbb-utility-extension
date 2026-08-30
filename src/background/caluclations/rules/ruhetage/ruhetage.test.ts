@@ -8,7 +8,12 @@ function tour(abkuerzung: TourRow['abkuerzung']): TourRow {
 	return { abkuerzung } as TourRow;
 }
 
-const ctx: RuleContext = { ferienChargeTargets: new Map(), kuerzungenChargeTargets: new Map() };
+const ctx: RuleContext = {
+	ferienChargeTargets: new Map(),
+	kuerzungenChargeTargets: new Map(),
+	anzahlFerienAnspruchInTagen: 0,
+	year: 2024
+};
 
 describe('ruhetagRule', () => {
 	it.each([

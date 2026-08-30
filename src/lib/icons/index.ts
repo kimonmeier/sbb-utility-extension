@@ -36,7 +36,8 @@ export {
 	Trash,
 	Download,
 	Upload,
-	TriangleAlert
+	TriangleAlert,
+	Calculator
 } from '@lucide/svelte';
 
 // Re-export types

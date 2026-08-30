@@ -11,5 +11,11 @@ export const MENU_ITEMS: MenuItem[] = [
 		page: 'employees',
 		action: () => navigateTo('employees')
 	},
+	{
+		icon: PersonStanding,
+		label: m.nav_caluclations,
+		page: 'caluclations',
+		action: () => navigateTo('caluclations')
+	},
 	{ icon: Settings, label: m.nav_settings, page: 'settings', action: () => navigateTo('settings') }
 ];
