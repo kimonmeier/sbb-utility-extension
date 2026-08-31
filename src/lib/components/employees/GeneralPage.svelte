@@ -1,15 +1,19 @@
 <script lang="ts">
 	import { m } from '@/paraglide/messages';
-	import { Button, Input, Table } from '$lib/components/ui';
+	import { Button, Input, Table, Select } from '$lib/components/ui';
 	import { sendWorkerDataMessage } from '$background/messages/messageSender';
 	import { alertQueue } from '$lib/stores/alert';
 	import { Trash, PersonStanding } from '$lib/icons';
 	import { navigateTo } from '@/lib/stores/navigation';
 	import PageHeader from '$lib/components/PageHeader.svelte';
 	import type { RowDefinition } from '$lib/components/ui/Table.types';
-	let employees: { id: string; name: string; employeeIdentification: string }[] = $state([]);
+	import { SopreDepot } from '$background/api/types/sopretypes';
+
+	let employees: { id: string; name: string; employeeIdentification: string; depot: SopreDepot }[] =
+		$state([]);
 	let name: string = $state('');
 	let employeeIdentification: string = $state('');
+	let depot: SopreDepot | null = $state(null);
 
 	const rowDefinitions = $derived.by(() =>
 		employees.map((employee): RowDefinition<typeof employee> => {
@@ -63,7 +67,8 @@
 
 		const result = await sendWorkerDataMessage('INSERT_DB', 'INSERT_EMPLOYEE', {
 			name,
-			employeeIdentification: upperCaseEmployeeId
+			employeeIdentification: upperCaseEmployeeId,
+			depot: depot ?? SopreDepot.UNBEKANNT
 		});
 
 		if (result.success) {
@@ -75,6 +80,17 @@
 				type: 'error',
 				message: m.employee_error_create({ error: result.error ?? '' })
 			});
+		}
+	}
+
+	function getDepotLabel(depot: SopreDepot): string {
+		switch (depot) {
+			case SopreDepot.UNBEKANNT:
+				return m.depot_unknown();
+			case SopreDepot.OLTEN:
+				return m.depot_olten();
+			default:
+				return depot;
 		}
 	}
 
@@ -102,6 +118,11 @@
 				allowSorting: true
 			},
 			{
+				type: 'display',
+				header: m.employee_table_depot(),
+				render: (row) => getDepotLabel(row.depot)
+			},
+			{
 				type: 'button',
 				header: m.employee_table_actions(),
 				buttonIcon: Trash,
@@ -121,6 +142,17 @@
 			type="text"
 			class="input input-bordered w-full"
 			bind:value={employeeIdentification}
+		/>
+		<label for="depot" class="label">{m.employee_form_depot_label()}</label>
+		<Select
+			id="depot"
+			className="mt-2 w-full"
+			onchange={(event) => (depot = event.detail)}
+			items={Object.values(SopreDepot).map((depot) => ({
+				label: getDepotLabel(depot),
+				value: depot
+			}))}
+			placeholder={m.employee_form_depot_placeholder()}
 		/>
 		<Button class="mt-4 w-full" onclick={createEmployee}>{m.employee_form_submit()}</Button>
 	</fieldset>

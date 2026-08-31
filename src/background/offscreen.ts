@@ -124,7 +124,8 @@ createOffscreenListener({
 					employees: employees.map((employee) => ({
 						id: employee.id,
 						name: employee.name,
-						employeeIdentification: employee.employeeId
+						employeeIdentification: employee.employeeId,
+						depot: employee.depot
 					}))
 				};
 			} catch (error) {
@@ -210,8 +211,19 @@ createOffscreenListener({
 		},
 		GET_JAHRESTOURENPLAENE: async (payload) => {
 			try {
+				const employeeRecord = await db.query.employee.findFirst({
+					where: eq(employee.id, payload.employeeId)
+				});
+
+				if (!employeeRecord) {
+					return { success: false, error: 'Employee not found' };
+				}
+
 				const plaene = await db.query.jahrestourenplan.findMany({
-					where: eq(jahrestourenplan.jahr, payload.jahr)
+					where: and(
+						eq(jahrestourenplan.jahr, payload.jahr),
+						eq(jahrestourenplan.depot, employeeRecord.depot)
+					)
 				});
 
 				return {
@@ -451,11 +463,14 @@ createOffscreenListener({
 	INSERT_DB: {
 		INSERT_EMPLOYEE: async (payload) => {
 			try {
+				console.log('Inserting employee:', payload);
+
 				const newEmployee = await db
 					.insert(employee)
 					.values({
 						name: payload.name,
-						employeeId: payload.employeeIdentification
+						employeeId: payload.employeeIdentification,
+						depot: payload.depot
 					})
 					.returning();
 
@@ -464,7 +479,8 @@ createOffscreenListener({
 					employee: {
 						id: newEmployee[0].id,
 						name: newEmployee[0].name,
-						employeeIdentification: newEmployee[0].employeeId
+						employeeIdentification: newEmployee[0].employeeId,
+						depot: newEmployee[0].depot
 					}
 				};
 			} catch (error) {

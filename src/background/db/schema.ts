@@ -6,7 +6,8 @@ export const employee = sqliteTable('employee', {
 		.primaryKey()
 		.$defaultFn(() => crypto.randomUUID()),
 	name: text('name').notNull(),
-	employeeId: text('employeeId').notNull()
+	employeeId: text('employeeId').notNull(),
+	depot: text('depot').$type<SopreDepot>().notNull()
 });
 
 export type SBBUtilityTouren = typeof touren.$inferInsert;

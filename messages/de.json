@@ -38,9 +38,12 @@
 	"employee_page_title": "Mitarbeiter",
 	"employee_table_name": "Name",
 	"employee_table_id": "Mitarbeiter-ID",
+	"employee_table_depot": "Depot",
 	"employee_table_actions": "Aktionen",
 	"employee_form_legend": "Mitarbeiter erfassen",
 	"employee_form_name_label": "Name",
+	"employee_form_depot_label": "Depot",
+	"employee_form_depot_placeholder": "Depot auswählen",
 	"employee_form_id_label": "Mitarbeiter-ID",
 	"employee_form_submit": "Mitarbeiter erfassen",
 	"employee_error_fetch": "Fehler beim Abrufen der Mitarbeiter: {error}",
@@ -179,5 +182,8 @@
 
 	"calc_hochgerechnet_hint": "{count} Tage nach dem letzten publizierten Tourentag wurden über die Linie hochgerechnet.",
 	"calc_hochgerechnet_none": "Keine Tage hochgerechnet. Ohne zugewiesene Linie endet die Prognose beim letzten publizierten Tourentag.",
-	"calc_log_hochgerechnet": "Hochgerechnet"
+	"calc_log_hochgerechnet": "Hochgerechnet",
+
+	"depot_unknown": "Unbekannt",
+	"depot_olten": "Olten"
 }

@@ -85,8 +85,6 @@ async function synchronizeTouren(
 
 	await synchronizeZeitkonten(employeeId, api_token);
 
-	// Aus dem frisch synchronisierten Tourenablauf die Linie bestimmen und die
-	// Tage hochrechnen, die die SBB noch nicht publiziert hat.
 	const currentYear = new Date().getFullYear();
 	await erkenneUndSpeichereLinie(employeeId, currentYear);
 	await erzeugeHochrechnung(employeeId, currentYear);

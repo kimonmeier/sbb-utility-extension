@@ -86,7 +86,8 @@
 
 	async function fetchPlaeneUndBewertung(fuerJahr: number) {
 		const plaeneResult = await sendWorkerDataMessage('QUERY_DB', 'GET_JAHRESTOURENPLAENE', {
-			jahr: fuerJahr
+			jahr: fuerJahr,
+			employeeId: props.employeeId
 		});
 
 		if (!plaeneResult.success) {
@@ -218,7 +219,7 @@
 							tage: bewertung.bewertbareTage
 						})}
 						{#if bewertung.grund}
-							&mdash; {grundLabel(bewertung.grund)}
+							- {grundLabel(bewertung.grund)}
 						{/if}
 					</li>
 				{/each}

@@ -1,13 +1,14 @@
 import type { CalculationLogEntry } from '$background/caluclations/rules/types';
 import type { AccountId } from '$background/caluclations/types';
 import type { LinienZuweisungQuelle } from '$background/db/schema';
+import type { SopreDepot } from '$background/api/types/sopretypes';
 
 type QueryRequest = {
 	GET_EPMLOYEES: {
 		payload: undefined;
 		response: {
 			success: boolean;
-			employees?: { id: string; name: string; employeeIdentification: string }[];
+			employees?: { id: string; name: string; employeeIdentification: string; depot: SopreDepot }[];
 			error?: string;
 		};
 	};
@@ -32,7 +33,7 @@ type QueryRequest = {
 		};
 	};
 	GET_JAHRESTOURENPLAENE: {
-		payload: { jahr: number };
+		payload: { jahr: number; employeeId: string };
 		response: {
 			success: boolean;
 			plaene?: {
@@ -137,7 +138,7 @@ export type QueryMessage = {
 
 type PostCommandRequest = {
 	INSERT_EMPLOYEE: {
-		payload: { name: string; employeeIdentification: string };
+		payload: { name: string; employeeIdentification: string; depot: SopreDepot };
 		response: { success: boolean; error?: string };
 	};
 	UPSERT_EMPLOYEE_FERIENANSPRUCH: {

@@ -47,9 +47,9 @@ export async function initDatabaseAndMigrate() {
 
 			// Mark as applied
 			await db.run(sql`
-        INSERT INTO __drizzle_migrations (drizzle_tag, created_at) 
-        VALUES (${entry.tag}, strftime('%s', 'now'))
-      `);
+				INSERT INTO __drizzle_migrations (drizzle_tag, created_at) 
+				VALUES (${entry.tag}, strftime('%s', 'now'))
+			`);
 
 			console.log(`✅ Applied migration: ${entry.tag}`);
 		}
