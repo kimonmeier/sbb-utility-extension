@@ -77,6 +77,15 @@ async function initWorker() {
 			},
 			GET_EMPLOYEE_CALUCULATION: async (payload) => {
 				return await sendOffscreenDataMessage('QUERY_DB', 'GET_EMPLOYEE_CALUCULATION', payload);
+			},
+			GET_JAHRESTOURENPLAENE: async (payload) => {
+				return await sendOffscreenDataMessage('QUERY_DB', 'GET_JAHRESTOURENPLAENE', payload);
+			},
+			GET_EMPLOYEE_LINIE: async (payload) => {
+				return await sendOffscreenDataMessage('QUERY_DB', 'GET_EMPLOYEE_LINIE', payload);
+			},
+			GET_EMPLOYEE_LINIEN_BEWERTUNG: async (payload) => {
+				return await sendOffscreenDataMessage('QUERY_DB', 'GET_EMPLOYEE_LINIEN_BEWERTUNG', payload);
 			}
 		},
 		INSERT_DB: {
@@ -96,6 +105,12 @@ async function initWorker() {
 					'INSERT_EMPLOYEE_ARBEITSVERHAELTNIS',
 					payload
 				);
+			},
+			UPSERT_EMPLOYEE_LINIE: async (payload) => {
+				return await sendOffscreenDataMessage('INSERT_DB', 'UPSERT_EMPLOYEE_LINIE', payload);
+			},
+			IMPORT_JAHRESTOURENPLAN: async (payload) => {
+				return await sendOffscreenDataMessage('INSERT_DB', 'IMPORT_JAHRESTOURENPLAN', payload);
 			}
 		},
 		DELETE_DB: {
@@ -115,6 +130,9 @@ async function initWorker() {
 					'DELETE_EMPLOYEE_ARBEITSVERHAELTNIS',
 					payload
 				);
+			},
+			DELETE_EMPLOYEE_LINIE: async (payload) => {
+				return await sendOffscreenDataMessage('DELETE_DB', 'DELETE_EMPLOYEE_LINIE', payload);
 			}
 		}
 	});

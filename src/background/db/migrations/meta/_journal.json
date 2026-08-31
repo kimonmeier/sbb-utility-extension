@@ -29,6 +29,13 @@
       "when": 1787971658882,
       "tag": "0003_tired_molten_man",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1788184110123,
+      "tag": "0004_fantastic_proudstar",
+      "breakpoints": true
     }
   ]
 }

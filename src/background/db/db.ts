@@ -3,6 +3,7 @@ import { SQLocalDrizzle } from 'sqlocal/drizzle';
 import { drizzle } from 'drizzle-orm/sqlite-proxy';
 import journal from './migrations/meta/_journal.json';
 import * as schema from './schema';
+import { seedJahrestourenplaene } from './jahrestourenplan';
 
 // 1. Vite inlines all .sql files as strings at build time
 const migrationFiles = import.meta.glob('./migrations/*.sql', {
@@ -53,6 +54,10 @@ export async function initDatabaseAndMigrate() {
 			console.log(`✅ Applied migration: ${entry.tag}`);
 		}
 	}
+
+	// Die mitgelieferten Jahrestourenplaene gehoeren zum Auslieferungsstand und
+	// werden bei jedem Start abgeglichen -- auch nach einem Reset oder Import.
+	await seedJahrestourenplaene();
 
 	console.log('Database ready & fully migrated!');
 	return db;

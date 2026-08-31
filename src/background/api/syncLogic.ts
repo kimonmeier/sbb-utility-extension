@@ -9,71 +9,23 @@ import { SopreDepot, SopreTourType, type SopreMonthsRequest } from './types/sopr
 import { sbbClient, toUserFacingSbbError } from './sbbclient';
 import { db } from '$background/db/db';
 import { TRACKED_ACCOUNT_IDS } from '$background/caluclations/types';
+import {
+	addDaysToDateKey,
+	parseZonedDateTime,
+	toZonedDateKey
+} from '$background/caluclations/date-helper';
+import {
+	erkenneUndSpeichereLinie,
+	erzeugeHochrechnung
+} from '$background/caluclations/linie/store';
 
 type PersistedTour = typeof touren.$inferSelect;
 type TourItem = ReturnType<typeof flattenTourItems>[number];
 
-const TIME_ZONE = 'Europe/Zurich';
 const TRACKED_ACCOUNT_IDS_SET = [...TRACKED_ACCOUNT_IDS];
 
-function parseZonedDateTime(value: string): Date {
-	const match = value
-		.trim()
-		.match(/^(\d{4})-(\d{2})-(\d{2})(?:[ T](\d{1,2}):(\d{2})(?::(\d{2}))?)?$/);
-	if (!match) {
-		throw new Error(`Unrecognized date/time value from SBB API: "${value}"`);
-	}
-
-	const [, year, month, day, hour, minute, second] = match;
-	const utcGuess = Date.UTC(
-		Number(year),
-		Number(month) - 1,
-		Number(day),
-		hour ? Number(hour) : 0,
-		minute ? Number(minute) : 0,
-		second ? Number(second) : 0
-	);
-
-	const offsetMinutes = getTimeZoneOffsetMinutes(new Date(utcGuess), TIME_ZONE);
-	return new Date(utcGuess - offsetMinutes * 60_000);
-}
-
-function getTimeZoneOffsetMinutes(date: Date, timeZone: string): number {
-	const parts = new Intl.DateTimeFormat('en-US', {
-		timeZone,
-		hourCycle: 'h23',
-		year: 'numeric',
-		month: '2-digit',
-		day: '2-digit',
-		hour: '2-digit',
-		minute: '2-digit',
-		second: '2-digit'
-	}).formatToParts(date);
-
-	const lookup: Record<string, string> = {};
-	for (const part of parts) {
-		lookup[part.type] = part.value;
-	}
-
-	const asUtc = Date.UTC(
-		Number(lookup.year),
-		Number(lookup.month) - 1,
-		Number(lookup.day),
-		Number(lookup.hour),
-		Number(lookup.minute),
-		Number(lookup.second)
-	);
-
-	return (asUtc - date.getTime()) / 60_000;
-}
-
-function addDaysToDateString(dateStr: string, days: number): string {
-	const [year, month, day] = dateStr.split('-').map(Number);
-	return new Date(Date.UTC(year, month - 1, day + days)).toISOString().slice(0, 10);
-}
-
 function todayInZurich(): string {
-	return new Intl.DateTimeFormat('en-CA', { timeZone: TIME_ZONE }).format(new Date());
+	return toZonedDateKey(new Date());
 }
 
 export async function synchronizeTourenForAllEmployees(
@@ -132,6 +84,12 @@ async function synchronizeTouren(
 	}
 
 	await synchronizeZeitkonten(employeeId, api_token);
+
+	// Aus dem frisch synchronisierten Tourenablauf die Linie bestimmen und die
+	// Tage hochrechnen, die die SBB noch nicht publiziert hat.
+	const currentYear = new Date().getFullYear();
+	await erkenneUndSpeichereLinie(employeeId, currentYear);
+	await erzeugeHochrechnung(employeeId, currentYear);
 }
 
 const TOUR_TYPE_BY_CODE: Record<string, SopreTourType> = {
@@ -390,7 +348,7 @@ function applyReserveFields(item: TourItem, tour: SBBUtilityTouren): void {
 }
 
 function applyPlannedTourFields(item: TourItem, tour: SBBUtilityTouren): void {
-	const endDate = item.tourEndsNextDay ? addDaysToDateString(item.date, 1) : item.date;
+	const endDate = item.tourEndsNextDay ? addDaysToDateKey(item.date, 1) : item.date;
 
 	tour.tourNumber = parseInt(item.tournummer!, 10);
 	tour.startTime = parseZonedDateTime(`${item.date} ${item.tourStartzeit}`);

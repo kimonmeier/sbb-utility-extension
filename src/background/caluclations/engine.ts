@@ -10,7 +10,7 @@ import type {
 import { ferienRule } from './rules/ferien/ferien';
 import { kuerzungenRule } from './rules/kuerzungen/kuerzungen';
 import { collectKuerzungenChargeTargets } from './kuerzungen-helper';
-import { countSaturdaysInYear, toDateString } from './date-helper';
+import { countSaturdaysInYear, toZonedDateKey } from './date-helper';
 import { toTourLabel } from './tour-helper';
 
 export class CalulcationEngine {
@@ -59,7 +59,9 @@ export class CalulcationEngine {
 
 			if (outcome.kind === 'apply' || outcome.reason !== 'No matching rule') {
 				log.push({
-					date: toDateString(tour.datum.getTime()),
+					// Touren liegen als lokale Mitternacht in der DB; ueber UTC
+					// gelesen faellt das auf den Vortag.
+					date: toZonedDateKey(tour.datum),
 					tourLabel: toTourLabel(tour),
 					outcome
 				});

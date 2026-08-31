@@ -3,16 +3,24 @@ import { getTableColumns } from 'drizzle-orm';
 import type { SQLiteTable } from 'drizzle-orm/sqlite-core';
 import { client, db, initDatabaseAndMigrate } from './db';
 import * as schema from './schema';
+import { erzeugeHochrechnungFuerAlle } from '$background/caluclations/linie/store';
+import { seedJahrestourenplaene } from './jahrestourenplan';
 
 // Parents before children, so import can insert in this order and delete
 // can run in reverse without violating foreign key references.
+// hochrechnungTouren fehlt hier bewusst: die Tabelle ist abgeleitet und wird
+// nach Import und Sync ohnehin neu erzeugt. Ein Restore wuerde sonst veraltete
+// Prognosen einschleppen.
 const BACKUP_TABLES: Record<string, SQLiteTable> = {
 	employee: schema.employee,
+	jahrestourenplan: schema.jahrestourenplan,
+	jahrestourenplanWoche: schema.jahrestourenplanWoche,
 	touren: schema.touren,
 	zeitkontenSnapshots: schema.zeitkontenSnapshots,
 	employeeFerienanspruch: schema.employeeFerienanspruch,
 	employeeArbeitsverhaeltnis: schema.employeeArbeitsverhaeltnis,
-	arbeitszeitManualKuerzungen: schema.arbeitszeitManualKuerzungen
+	arbeitszeitManualKuerzungen: schema.arbeitszeitManualKuerzungen,
+	employeeLinie: schema.employeeLinie
 };
 
 export async function resetDatabase(): Promise<void> {
@@ -27,6 +35,7 @@ export async function exportDatabaseFile(): Promise<File> {
 export async function importDatabaseFile(file: File | Blob): Promise<void> {
 	await client.overwriteDatabaseFile(file);
 	await initDatabaseAndMigrate();
+	await erzeugeHochrechnungFuerAlle();
 }
 
 export async function exportDatabaseAsJson(): Promise<string> {
@@ -64,4 +73,11 @@ export async function importDatabaseFromJson(json: string): Promise<void> {
 
 		await (db as any).insert(table).values(coercedRows);
 	}
+
+	// Eine Sicherung aus einer aelteren Version bringt noch keine
+	// Jahrestourenplaene mit; die mitgelieferten wieder herstellen.
+	await seedJahrestourenplaene();
+
+	// Die Hochrechnung ist abgeleitet und deshalb nicht Teil der Sicherung.
+	await erzeugeHochrechnungFuerAlle();
 }

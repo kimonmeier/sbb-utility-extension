@@ -37,7 +37,8 @@ export {
 	Download,
 	Upload,
 	TriangleAlert,
-	Calculator
+	Calculator,
+	CalendarDays
 } from '@lucide/svelte';
 
 // Re-export types

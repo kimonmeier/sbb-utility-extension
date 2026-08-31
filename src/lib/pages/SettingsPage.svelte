@@ -6,6 +6,7 @@
 	import Icon from '$lib/components/Icon.svelte';
 	import PageHeader from '$lib/components/PageHeader.svelte';
 	import ExpertSettings from '$lib/components/settings/ExpertSettings.svelte';
+	import JahrestourenplanSettings from '$lib/components/settings/JahrestourenplanSettings.svelte';
 	import { alertQueue } from '$lib/stores/alert';
 	import { m } from '@/paraglide/messages.js';
 
@@ -107,6 +108,8 @@
 			</div>
 		</div>
 	</div>
+
+	<JahrestourenplanSettings />
 
 	{#if $expertMode}
 		<ExpertSettings />

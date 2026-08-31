@@ -1,5 +1,6 @@
 import type { CalculationLogEntry } from '$background/caluclations/rules/types';
 import type { AccountId } from '$background/caluclations/types';
+import type { LinienZuweisungQuelle } from '$background/db/schema';
 
 type QueryRequest = {
 	GET_EPMLOYEES: {
@@ -27,6 +28,56 @@ type QueryRequest = {
 		response: {
 			success: boolean;
 			ferienanspruch?: { id: string; jahr: number; ferienAnspruchInTagen: number }[];
+			error?: string;
+		};
+	};
+	GET_JAHRESTOURENPLAENE: {
+		payload: { jahr: number };
+		response: {
+			success: boolean;
+			plaene?: {
+				id: string;
+				depot: string;
+				gruppe: string;
+				wochenschema: string;
+				jahr: number;
+				gueltigVon: string;
+				gueltigBis: string;
+				zyklusLaenge: number;
+			}[];
+			error?: string;
+		};
+	};
+	GET_EMPLOYEE_LINIE: {
+		payload: { employeeId: string };
+		response: {
+			success: boolean;
+			zuweisungen?: {
+				id: string;
+				jahr: number;
+				planId: string;
+				gruppe: string;
+				zyklusLaenge: number;
+				linie: number;
+				quelle: LinienZuweisungQuelle;
+				trefferquote: number | null;
+			}[];
+			error?: string;
+		};
+	};
+	GET_EMPLOYEE_LINIEN_BEWERTUNG: {
+		payload: { employeeId: string; jahr: number };
+		response: {
+			success: boolean;
+			bewertungen?: {
+				gruppe: string;
+				planId: string;
+				erkannt: boolean;
+				linie: number | null;
+				trefferquote: number;
+				bewertbareTage: number;
+				grund: string | null;
+			}[];
 			error?: string;
 		};
 	};
@@ -63,6 +114,7 @@ type QueryRequest = {
 				scores: { ferien: number; kompensationstage: number; ruhetage: number };
 				soll: { ruhetage: number; kompensationstage: number };
 				geplant: { ruhetage: number; kompensationstage: number };
+				hochgerechnet: { ruhetage: number; kompensationstage: number; daten: string[] };
 				ferienAnteil: { ruhetage: number; kompensationstage: number };
 				kuerzungen: { ruhetage: number; kompensationstage: number; ferien: number };
 				aktuell: Partial<Record<AccountId, number>>;
@@ -96,6 +148,14 @@ type PostCommandRequest = {
 		payload: { employeeId: string; von: Date; pensumProzent: number };
 		response: { success: boolean; error?: string };
 	};
+	UPSERT_EMPLOYEE_LINIE: {
+		payload: { employeeId: string; jahr: number; planId: string; linie: number };
+		response: { success: boolean; error?: string };
+	};
+	IMPORT_JAHRESTOURENPLAN: {
+		payload: { json: string };
+		response: { success: boolean; gruppen?: number; error?: string };
+	};
 };
 
 type PostCommandRequestType = keyof PostCommandRequest;
@@ -118,6 +178,10 @@ type DeleteCommandRequest = {
 		response: { success: boolean; error?: string };
 	};
 	DELETE_EMPLOYEE_ARBEITSVERHAELTNIS: {
+		payload: { id: string };
+		response: { success: boolean; error?: string };
+	};
+	DELETE_EMPLOYEE_LINIE: {
 		payload: { id: string };
 		response: { success: boolean; error?: string };
 	};

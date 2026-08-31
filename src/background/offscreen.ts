@@ -12,6 +12,8 @@ import {
 	employee,
 	employeeArbeitsverhaeltnis,
 	employeeFerienanspruch,
+	employeeLinie,
+	jahrestourenplan,
 	touren,
 	zeitkontenSnapshots
 } from './db/schema';
@@ -19,11 +21,27 @@ import { createOffscreenListener } from './messages/messageReciever';
 import { arrayBufferToBase64, base64ToArrayBuffer } from '$lib/utils/base64';
 import { CalulcationEngine } from './caluclations/engine';
 import type { CalculationLogEntry } from './caluclations/rules/types';
-import { RUHETAGE_SOLL, type AccountId } from './caluclations/types';
-import { countSaturdaysInYear } from './caluclations/date-helper';
+import { RUHETAGE_SOLL, type AccountId, type TourRow } from './caluclations/types';
+import { countSaturdaysInYear, toZonedDateKey } from './caluclations/date-helper';
 import { isKompensationstagType, isRuhetagType } from './caluclations/tour-helper';
 import { collectFerienChargeTargets } from './caluclations/holiday-schedule';
 import { collectKuerzungenChargeTargets } from './caluclations/kuerzungen-helper';
+import {
+	bewerteAlleGruppen,
+	erzeugeHochrechnung,
+	ladeHochrechnungAlsTourRows
+} from './caluclations/linie/store';
+import { importiereJahrestourenplan } from './db/jahrestourenplan';
+
+/**
+ * Fuehrt echte und hochgerechnete Tage zu einer Liste zusammen. Hochgerechnet
+ * wird nur fuer Tage ohne echte Tour, ein Ueberschreiben kann es also nicht
+ * geben; sortiert wird trotzdem, damit die Ferien- und Kuerzungsregeln die
+ * Tage in der richtigen Reihenfolge sehen.
+ */
+function mergeTouren(echte: TourRow[], hochgerechnete: TourRow[]): TourRow[] {
+	return [...echte, ...hochgerechnete].sort((a, b) => a.datum.getTime() - b.datum.getTime());
+}
 
 createOffscreenListener({
 	INIT_DB: async () => {
@@ -185,6 +203,79 @@ createOffscreenListener({
 				return { success: false, error: String(error) };
 			}
 		},
+		GET_JAHRESTOURENPLAENE: async (payload) => {
+			try {
+				const plaene = await db.query.jahrestourenplan.findMany({
+					where: eq(jahrestourenplan.jahr, payload.jahr)
+				});
+
+				return {
+					success: true,
+					plaene: plaene
+						.map((plan) => ({
+							id: plan.id,
+							depot: plan.depot,
+							gruppe: plan.gruppe,
+							wochenschema: plan.wochenschema,
+							jahr: plan.jahr,
+							gueltigVon: toZonedDateKey(plan.gueltigVon),
+							gueltigBis: toZonedDateKey(plan.gueltigBis),
+							zyklusLaenge: plan.zyklusLaenge
+						}))
+						.sort((a, b) => a.gruppe.localeCompare(b.gruppe))
+				};
+			} catch (error) {
+				console.error('Error querying jahrestourenplan:', error);
+				return { success: false, error: String(error) };
+			}
+		},
+		GET_EMPLOYEE_LINIE: async (payload) => {
+			try {
+				const zuweisungen = await db
+					.select({
+						id: employeeLinie.id,
+						jahr: employeeLinie.jahr,
+						planId: employeeLinie.plan,
+						gruppe: jahrestourenplan.gruppe,
+						zyklusLaenge: jahrestourenplan.zyklusLaenge,
+						linie: employeeLinie.linie,
+						quelle: employeeLinie.quelle,
+						trefferquote: employeeLinie.trefferquote
+					})
+					.from(employeeLinie)
+					.innerJoin(jahrestourenplan, eq(employeeLinie.plan, jahrestourenplan.id))
+					.where(eq(employeeLinie.employee, payload.employeeId));
+
+				return { success: true, zuweisungen };
+			} catch (error) {
+				console.error('Error querying employeeLinie:', error);
+				return { success: false, error: String(error) };
+			}
+		},
+		GET_EMPLOYEE_LINIEN_BEWERTUNG: async (payload) => {
+			try {
+				const bewertungen = await bewerteAlleGruppen(payload.employeeId, payload.jahr);
+
+				return {
+					success: true,
+					bewertungen: bewertungen.map(({ plan, ergebnis }) => ({
+						gruppe: plan.gruppe,
+						planId: plan.id,
+						erkannt: ergebnis.kind === 'erkannt',
+						linie: ergebnis.kind === 'erkannt' ? ergebnis.linie : null,
+						trefferquote: Math.round(
+							(ergebnis.kind === 'erkannt' ? ergebnis.trefferquote : ergebnis.besteTrefferquote) *
+								100
+						),
+						bewertbareTage: ergebnis.bewertbareTage,
+						grund: ergebnis.kind === 'unklar' ? ergebnis.grund : null
+					}))
+				};
+			} catch (error) {
+				console.error('Error evaluating linien detection:', error);
+				return { success: false, error: String(error) };
+			}
+		},
 		GET_ALL_EMPLOYEE_CALUCULATION: async () => {
 			try {
 				const employees = await db.query.employee.findMany();
@@ -216,8 +307,12 @@ createOffscreenListener({
 						where: (entry) => and(eq(entry.employee, employee.id), eq(entry.jahr, 2026))
 					});
 
-					engine.initContext(allTouren, 2026, ferienanspruch?.ferienAnspruchInTagen ?? 0);
-					const scores = engine.calculateScores(allTouren);
+					// Die hochgerechneten Dezembertage zaehlen wie echte Touren mit.
+					const hochgerechnet = await ladeHochrechnungAlsTourRows(employee.id, 2026);
+					const alleZeilen = mergeTouren(allTouren, hochgerechnet);
+
+					engine.initContext(alleZeilen, 2026, ferienanspruch?.ferienAnspruchInTagen ?? 0);
+					const scores = engine.calculateScores(alleZeilen);
 
 					results.push({
 						id: employee.id,
@@ -264,11 +359,14 @@ createOffscreenListener({
 					where: (entry) => and(eq(entry.employee, payload.employeeId), eq(entry.jahr, year))
 				});
 
-				const engine = new CalulcationEngine();
-				engine.initContext(yearTouren, year, ferienanspruch?.ferienAnspruchInTagen ?? 0);
-				const scores = engine.calculateScores(yearTouren);
+				const hochgerechnet = await ladeHochrechnungAlsTourRows(payload.employeeId, year);
+				const alleZeilen = mergeTouren(yearTouren, hochgerechnet);
 
-				const ferienChargeTargets = collectFerienChargeTargets(yearTouren);
+				const engine = new CalulcationEngine();
+				engine.initContext(alleZeilen, year, ferienanspruch?.ferienAnspruchInTagen ?? 0);
+				const scores = engine.calculateScores(alleZeilen);
+
+				const ferienChargeTargets = collectFerienChargeTargets(alleZeilen);
 				const ferienAnteil = { ruhetage: 0, kompensationstage: 0 };
 				for (const account of ferienChargeTargets.values()) {
 					if (account === '9047') {
@@ -279,7 +377,7 @@ createOffscreenListener({
 				}
 
 				const kuerzungenChargeTargets = collectKuerzungenChargeTargets(
-					yearTouren,
+					alleZeilen,
 					year,
 					ferienanspruch?.ferienAnspruchInTagen ?? 0
 				);
@@ -295,9 +393,16 @@ createOffscreenListener({
 				}
 
 				const geplant = {
-					ruhetage: yearTouren.filter((tour) => isRuhetagType(tour.abkuerzung)).length,
-					kompensationstage: yearTouren.filter((tour) => isKompensationstagType(tour.abkuerzung))
+					ruhetage: alleZeilen.filter((tour) => isRuhetagType(tour.abkuerzung)).length,
+					kompensationstage: alleZeilen.filter((tour) => isKompensationstagType(tour.abkuerzung))
 						.length
+				};
+				const hochgerechneteTage = {
+					ruhetage: hochgerechnet.filter((tour) => isRuhetagType(tour.abkuerzung)).length,
+					kompensationstage: hochgerechnet.filter((tour) =>
+						isKompensationstagType(tour.abkuerzung)
+					).length,
+					daten: hochgerechnet.map((tour) => toZonedDateKey(tour.datum))
 				};
 
 				const snapshots = await db.query.zeitkontenSnapshots.findMany({
@@ -326,6 +431,7 @@ createOffscreenListener({
 						},
 						soll: { ruhetage: RUHETAGE_SOLL, kompensationstage: countSaturdaysInYear(year) },
 						geplant,
+						hochgerechnet: hochgerechneteTage,
 						ferienAnteil,
 						aktuell,
 						kuerzungen,
@@ -379,6 +485,48 @@ createOffscreenListener({
 				return { success: true };
 			} catch (error) {
 				console.error('Error upserting employeeFerienanspruch:', error);
+				return { success: false, error: String(error) };
+			}
+		},
+		UPSERT_EMPLOYEE_LINIE: async (payload) => {
+			try {
+				await db
+					.insert(employeeLinie)
+					.values({
+						employee: payload.employeeId,
+						jahr: payload.jahr,
+						plan: payload.planId,
+						linie: payload.linie,
+						quelle: 'MANUAL',
+						trefferquote: null,
+						erkanntAm: null
+					})
+					.onConflictDoUpdate({
+						target: [employeeLinie.employee, employeeLinie.jahr],
+						set: {
+							plan: payload.planId,
+							linie: payload.linie,
+							quelle: 'MANUAL',
+							trefferquote: null,
+							erkanntAm: null
+						}
+					});
+
+				// Die Hochrechnung haengt an der Zuweisung und muss mitziehen.
+				await erzeugeHochrechnung(payload.employeeId, payload.jahr);
+
+				return { success: true };
+			} catch (error) {
+				console.error('Error upserting employeeLinie:', error);
+				return { success: false, error: String(error) };
+			}
+		},
+		IMPORT_JAHRESTOURENPLAN: async (payload) => {
+			try {
+				const datei = await importiereJahrestourenplan(payload.json);
+				return { success: true, gruppen: datei.gruppen.length };
+			} catch (error) {
+				console.error('Error importing jahrestourenplan:', error);
 				return { success: false, error: String(error) };
 			}
 		},
@@ -458,6 +606,27 @@ createOffscreenListener({
 				return { success: true };
 			} catch (error) {
 				console.error('Error deleting employeeArbeitsverhaeltnis:', error);
+				return { success: false, error: String(error) };
+			}
+		},
+		DELETE_EMPLOYEE_LINIE: async (payload) => {
+			try {
+				const zuweisung = await db.query.employeeLinie.findFirst({
+					where: eq(employeeLinie.id, payload.id)
+				});
+
+				if (!zuweisung) {
+					return { success: true };
+				}
+
+				await db.delete(employeeLinie).where(eq(employeeLinie.id, payload.id));
+				// Ohne Zuweisung gibt es nichts hochzurechnen; der Aufruf raeumt
+				// die bisherigen Prognosetage weg.
+				await erzeugeHochrechnung(zuweisung.employee, zuweisung.jahr);
+
+				return { success: true };
+			} catch (error) {
+				console.error('Error deleting employeeLinie:', error);
 				return { success: false, error: String(error) };
 			}
 		}

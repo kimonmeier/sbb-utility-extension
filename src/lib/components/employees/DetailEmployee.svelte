@@ -5,6 +5,7 @@
 	import { navigateTo } from '@/lib/stores/navigation';
 	import { onMount } from 'svelte';
 	import EmployeeFerienanspruch from './EmployeeFerienanspruch.svelte';
+	import EmployeeLinie from './EmployeeLinie.svelte';
 	import EmployeeArbeitsverhaeltnis from './EmployeeArbeitsverhaeltnis.svelte';
 	import PageHeader from '$lib/components/PageHeader.svelte';
 	import { ChevronLeft, PersonStanding } from '$lib/icons';
@@ -51,6 +52,7 @@
 	/>
 	<div class="gap-4 mt-4 flex flex-col">
 		<EmployeeFerienanspruch employeeId={props.employeeId} />
+		<EmployeeLinie employeeId={props.employeeId} />
 		<EmployeeArbeitsverhaeltnis employeeId={props.employeeId} />
 	</div>
 {:else}
