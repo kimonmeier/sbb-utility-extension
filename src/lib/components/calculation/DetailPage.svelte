@@ -18,7 +18,6 @@
 		scores: { ferien: number; kompensationstage: number; ruhetage: number };
 		soll: { ruhetage: number; kompensationstage: number };
 		geplant: { ruhetage: number; kompensationstage: number };
-		hochgerechnet: { ruhetage: number; kompensationstage: number; daten: string[] };
 		ferienAnteil: { ruhetage: number; kompensationstage: number };
 		kuerzungen: { ruhetage: number; kompensationstage: number; ferien: number };
 		aktuell: Partial<Record<AccountId, number>>;
@@ -142,16 +141,6 @@
 		];
 	});
 
-	// Tage, die nicht aus dem publizierten Tourenplan stammen, sondern ueber die
-	// Linie hochgerechnet wurden. Dient nur der Kennzeichnung im Log.
-	const hochgerechneteDaten = $derived.by(() => {
-		if (!calculation) {
-			return new Set<string>();
-		}
-
-		return new Set(calculation.hochgerechnet.daten);
-	});
-
 	const kombiniertCard = $derived.by(() => {
 		if (!calculation) {
 			return null;
@@ -160,8 +149,10 @@
 		return {
 			total:
 				calculation.geplant.ruhetage +
+				calculation.kuerzungen.ruhetage +
 				calculation.ferienAnteil.ruhetage +
 				calculation.geplant.kompensationstage +
+				calculation.kuerzungen.kompensationstage +
 				calculation.ferienAnteil.kompensationstage,
 			remaining: calculation.scores.ruhetage + calculation.scores.kompensationstage
 		};
@@ -260,17 +251,6 @@
 			<div class="bg-base-200 rounded-2xl p-4 mt-4 text-sm gap-2 flex flex-col opacity-70">
 				<p>{m.calc_saturdays_note({ count: String(calculation.soll.kompensationstage) })}</p>
 				<p>{m.calc_estimation_note()}</p>
-				{#if calculation.hochgerechnet.daten.length > 0}
-					<p>
-						{m.calc_hochgerechnet_hint({
-							count: String(calculation.hochgerechnet.daten.length)
-						})}
-						{m.calc_card_ruhetage_title()}: {calculation.hochgerechnet.ruhetage} | {m.calc_card_kompensationstage_title()}:
-						{calculation.hochgerechnet.kompensationstage}
-					</p>
-				{:else}
-					<p>{m.calc_hochgerechnet_none()}</p>
-				{/if}
 			</div>
 		</div>
 
@@ -293,14 +273,7 @@
 						<tbody>
 							{#each calculation.log as entry, i (i)}
 								<tr>
-									<td>
-										{entry.date}
-										{#if hochgerechneteDaten.has(entry.date)}
-											<span class="badge badge-outline badge-sm ml-1">
-												{m.calc_log_hochgerechnet()}
-											</span>
-										{/if}
-									</td>
+									<td>{entry.date}</td>
 									<td>{entry.tourLabel}</td>
 									<td>{entry.outcome.kind === 'apply' ? entry.outcome.accountId : '–'}</td>
 									<td>
