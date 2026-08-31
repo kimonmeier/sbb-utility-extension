@@ -5,7 +5,6 @@ const TARGET_URLS = ['https://sopreweb-tourenplan-api.app.sbb.ch/mitarbeiter/che
 
 let currentToken: string | null = null;
 
-// Ensure only one offscreen document exists
 async function setupOffscreenDocument() {
 	const offscreenUrl = chrome.runtime.getURL('offscreen.html');
 	const existingContexts = await chrome.runtime.getContexts({
@@ -23,6 +22,7 @@ async function setupOffscreenDocument() {
 }
 
 async function initWorker() {
+	console.log('Initializing worker...');
 	await setupOffscreenDocument();
 
 	const initResult = await sendOffscreenMessage('INIT_DB');

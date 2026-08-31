@@ -32,6 +32,7 @@ import {
 	ladeHochrechnungAlsTourRows
 } from './caluclations/linie/store';
 import { importiereJahrestourenplan } from './db/jahrestourenplan';
+import { sendWorkerMessage } from './messages/messageSender';
 
 /**
  * Fuehrt echte und hochgerechnete Tage zu einer Liste zusammen. Hochgerechnet
@@ -46,6 +47,10 @@ function mergeTouren(echte: TourRow[], hochgerechnete: TourRow[]): TourRow[] {
 createOffscreenListener({
 	INIT_DB: async () => {
 		await initDatabaseAndMigrate();
+
+		setInterval(async () => {
+			await sendWorkerMessage('KEEP_ALIVE');
+		}, 15000);
 		return { success: true };
 	},
 	SYNC_API: async (payload) => {
@@ -399,9 +404,8 @@ createOffscreenListener({
 				};
 				const hochgerechneteTage = {
 					ruhetage: hochgerechnet.filter((tour) => isRuhetagType(tour.abkuerzung)).length,
-					kompensationstage: hochgerechnet.filter((tour) =>
-						isKompensationstagType(tour.abkuerzung)
-					).length,
+					kompensationstage: hochgerechnet.filter((tour) => isKompensationstagType(tour.abkuerzung))
+						.length,
 					daten: hochgerechnet.map((tour) => toZonedDateKey(tour.datum))
 				};
 

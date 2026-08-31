@@ -5,6 +5,10 @@ export type WorkerMessageRegistry = {
 		payload: undefined;
 		response: { success: boolean; error?: string };
 	};
+	KEEP_ALIVE: {
+		payload: undefined;
+		response: { success: boolean; error?: string };
+	};
 	RESET_DB: {
 		payload: undefined;
 		response: { success: boolean; error?: string };
