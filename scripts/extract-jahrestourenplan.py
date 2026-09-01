@@ -16,6 +16,10 @@ Buchstaben ergeben sich daraus, dass in der Wochentabelle nur die Tokens
 Kopfdaten (Gruppenname, Wochenschema, Gueltigkeit) werden nicht aus den
 Vektorpfaden gelesen, sondern in PAGES/PLAN konfiguriert -- sie stehen einmal
 pro Seite und sind mit blossem Auge schneller korrekt erfasst als per Heuristik.
+
+Manche PDF-Exporte (z.B. Aarau) haben dagegen eine echte Textebene -- dort
+werden Ziffern und Buchstaben direkt als Woerter mit Position gelesen, kein
+Glyphen-Lernen noetig. Das Skript erkennt das automatisch pro Seite.
 """
 
 import collections
@@ -289,11 +293,68 @@ def extract_group(page):
             raise SystemExit(f"Woche {woche}: unlesbare Eintraege {tage}")
         wochen[int(woche)] = tage
 
+    return finalize_weeks(zyklus, wochen)
+
+
+def finalize_weeks(zyklus, wochen):
     missing = [n for n in range(1, zyklus + 1) if n not in wochen]
     if missing:
         raise SystemExit(f"Fehlende Wochen: {missing}")
 
     return zyklus, [wochen[n] for n in range(1, zyklus + 1)]
+
+
+def column_x(words, label):
+    """x0 des obersten Vorkommens eines Spaltenkopfs (z.B. "Nr", "So")."""
+    candidates = [(y0, x0) for x0, y0, _x1, _y1, text, *_ in words if text == label]
+    if not candidates:
+        raise SystemExit(f"Spaltenkopf '{label}' nicht gefunden")
+    return min(candidates)[1]
+
+
+def extract_group_text(page):
+    """Extraktion fuer PDF-Varianten mit echter Textebene statt Vektorpfaden.
+
+    Ziffern und Buchstaben sind hier normale Woerter, die Zellen werden also
+    direkt ueber die x-Position der Wort-Box den Spalten zugeordnet.
+    """
+    words = page.get_text("words")
+
+    nr_x = column_x(words, "Nr")
+    name_x = column_x(words, "Name")
+    header_y = min(y0 for _x0, y0, _x1, _y1, text, *_ in words if text == "Nr")
+    weekday_x = [column_x(words, day) for day in WEEKDAYS]
+    column_width = weekday_x[1] - weekday_x[0]
+    boundaries = weekday_x + [weekday_x[-1] + column_width]
+
+    # Die "Nr"-Spalte ist rechtsbuendig unter dem (linksbuendigen) Kopf "Nr"
+    # platziert, deshalb reicht der Kopf bis zum naechsten Spaltenkopf "Name".
+    nr_rows = collections.defaultdict(list)
+    for x0, y0, _x1, _y1, text, *_ in words:
+        if nr_x <= x0 < name_x and y0 > header_y + 2 and text.isdigit():
+            nr_rows[round(y0, 1)].append(text)
+
+    rows = {}
+    for y, texts in nr_rows.items():
+        if len(texts) != 1:
+            raise SystemExit(f"Nr-Spalte bei y={y}: mehrdeutig {texts}")
+        rows[y] = int(texts[0])
+
+    wochen = {}
+    for y, nr in rows.items():
+        cells = [""] * 7
+        for x0, y0, _x1, _y1, text, *_ in words:
+            if abs(y0 - y) > 1.0 or x0 < boundaries[0] - 2:
+                continue
+            for index in range(7):
+                if boundaries[index] - 2 <= x0 < boundaries[index + 1] - 2:
+                    cells[index] += text
+                    break
+        if any(entry == "" for entry in cells):
+            raise SystemExit(f"Woche {nr}: unlesbare Eintraege {cells}")
+        wochen[nr] = cells
+
+    return finalize_weeks(len(rows), wochen)
 
 
 def dump(plan):
@@ -328,7 +389,9 @@ def main():
 
     gruppen = []
     for page_index, header in DEPOTS[depot][PagesConst].items():
-        zyklus, wochen = extract_group(document[page_index])
+        page = document[page_index]
+        extractor = extract_group_text if page.get_text().strip() else extract_group
+        zyklus, wochen = extractor(page)
         gruppen.append({**header, "zyklusLaenge": zyklus, "wochen": wochen})
 
         # Selbstpruefung: die Kopfzeile jeder Seite nennt "Touren" und

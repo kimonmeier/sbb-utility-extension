@@ -1,0 +1,67 @@
+{
+  "version": 1,
+  "depot": "AA",
+  "jahr": 2026,
+  "gueltigVon": "2025-12-14",
+  "gueltigBis": "2026-12-12",
+  "gruppen": [
+    {
+      "gruppe": "Gruppe 31 RES",
+      "wochenschema": "SCP_AA-AA 031-Lokführer-Gruppe 31 RES",
+      "zyklusLaenge": 22,
+      "wochen": [
+        ["RT", "RES", "RES", "RES", "RES", "RES", "RES"],
+        ["RT", "RT", "RES", "RES", "RES", "RES", "RES"],
+        ["RES", "CT", "RT", "RES", "RES", "RES", "RES"],
+        ["RES", "RES", "CT", "RT", "RES", "RES", "CT"],
+        ["RT", "RES", "RES", "CT", "RT", "RES", "RES"],
+        ["RES", "RES", "RES", "RES", "CT", "RT", "RES"],
+        ["RES", "RES", "RES", "RES", "RES", "CT", "RT"],
+        ["RES", "RES", "RES", "RES", "RES", "CT", "RT"],
+        ["RT", "RES", "RES", "RES", "RES", "RES", "RES"],
+        ["RT", "RT", "RES", "RES", "RES", "RES", "RES"],
+        ["RES", "CT", "RT", "RES", "RES", "RES", "RES"],
+        ["RES", "RES", "CT", "RT", "RES", "RES", "CT"],
+        ["RT", "RES", "RES", "CT", "RT", "RES", "RES"],
+        ["RES", "RES", "RES", "RES", "CT", "RT", "RES"],
+        ["RES", "RES", "RES", "RES", "CT", "RT", "RT"],
+        ["RES", "RES", "RES", "RES", "RES", "RES", "CT"],
+        ["RT", "RES", "RES", "RES", "RES", "RES", "RES"],
+        ["RT", "RT", "RES", "RES", "RES", "RES", "RES"],
+        ["RES", "CT", "RT", "RES", "RES", "RES", "RES"],
+        ["RES", "RES", "CT", "RT", "RES", "RES", "CT"],
+        ["RT", "RES", "RES", "CT", "RT", "RES", "RES"],
+        ["RES", "CT", "RT", "RES", "RES", "RES", "CT"]
+      ]
+    },
+    {
+      "gruppe": "Gruppe 1",
+      "wochenschema": "SCP_AA-AA 001-Lokführer-Gruppe 1",
+      "zyklusLaenge": 22,
+      "wochen": [
+        ["RT", "101", "102", "103", "104", "106", "107"],
+        ["RT", "RT", "107", "108", "109", "110", "111"],
+        ["112", "CT", "RT", "101", "102", "103", "104"],
+        ["105", "106", "CT", "RT", "RES", "RES", "CT"],
+        ["RT", "108", "110", "CT", "RT", "102", "101"],
+        ["102", "105", "105", "107", "CT", "RT", "110"],
+        ["110", "111", "109", "111", "110", "CT", "RT"],
+        ["101", "102", "103", "RES", "106", "CT", "RT"],
+        ["RT", "107", "108", "110", "112", "109", "112"],
+        ["RT", "RT", "101", "104", "103", "107", "109"],
+        ["107", "CT", "RT", "109", "111", "112", "113"],
+        ["111", "110", "CT", "RT", "RES", "RES", "CT"],
+        ["RT", "RES", "RES", "CT", "RT", "105", "102"],
+        ["103", "104", "106", "RES", "CT", "RT", "103"],
+        ["RES", "RES", "RES", "RES", "CT", "RT", "RT"],
+        ["104", "103", "RES", "106", "107", "108", "CT"],
+        ["RT", "RES", "111", "112", "RES", "RES", "RES"],
+        ["RT", "RT", "104", "105", "101", "104", "106"],
+        ["108", "CT", "RT", "102", "105", "113", "108"],
+        ["109", "112", "CT", "RT", "108", "111", "CT"],
+        ["RT", "109", "112", "CT", "RT", "101", "105"],
+        ["106", "CT", "RT", "RES", "RES", "RES", "CT"]
+      ]
+    }
+  ]
+}
