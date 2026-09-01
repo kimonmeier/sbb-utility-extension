@@ -5,7 +5,7 @@ Dev-Werkzeug, kein Teil des Extension-Builds.
 
     pip install pymupdf
     python scripts/extract-jahrestourenplan.py Olten_2026.pdf \
-        src/background/data/jahrestourenplaene/olten-2026.json
+        src/background/data/jahrestourenplaene/olten-2026.json OL
 
 Warum so umstaendlich: die PDFs haben keine Textebene. Ziffern und Buchstaben
 sind als Vektorpfade gezeichnet. Das Skript clustert die Pfade und lernt die
@@ -27,7 +27,11 @@ try:
 except ImportError:  # pragma: no cover - dev tooling
     sys.exit("pymupdf fehlt: pip install pymupdf")
 
-PLAN = {
+PagesConst = "Pages"
+PlanConst = "Plan"
+
+
+PLAN_OL = {
     "version": 1,
     "depot": "OL",
     "jahr": 2026,
@@ -36,10 +40,57 @@ PLAN = {
 }
 
 # Seitenindex (0-basiert) -> Kopfdaten der Gruppe auf dieser Seite.
-PAGES = {
+PAGES_OL = {
     22: {"gruppe": "Gruppe 1", "wochenschema": "SCP_OL-OL 001-Lokführer-Gruppe 1"},
     48: {"gruppe": "Gruppe 2", "wochenschema": "SCP_OL-OL 002-Lokführer-Gruppe 2"},
     54: {"gruppe": "Gruppe 31 RES", "wochenschema": "SCP_OL-OL 031-Lokführer-Gruppe 31 RES"},
+}
+
+PLAN_BS = {
+    "version": 1,
+    "depot": "BS",
+    "jahr": 2026,
+    "gueltigVon": "2025-12-14",
+    "gueltigBis": "2026-12-12",
+}
+
+PAGES_BS = {
+    13: {"gruppe": "Gruppe 1", "wochenschema": "SCP_BS-BS 001-Lokführer-Gruppe 1"},
+    27: {"gruppe": "Gruppe 2", "wochenschema": "SCP_BS-BS 002-Lokführer-Gruppe 2"},
+    40: {"gruppe": "Gruppe 11 ETR", "wochenschema": "SCP_BS-BS 011-Lokführer-Gruppe 11 ETR"},
+    55: {"gruppe": "Gruppe 13 ICE", "wochenschema": "SCP_BS-BS 013-Lokführer-Gruppe 13 ICE"},
+    64: {"gruppe": "Gruppe 31 RES", "wochenschema": "SCP_BS-BS 031-Lokführer-Gruppe 31 RES"},
+    74: {"gruppe": "Gruppe 32 RES", "wochenschema": "SCP_BS-BS 032-Lokführer-Gruppe 32 RES"},
+    76: {"gruppe": "Gruppe 33 RES", "wochenschema": "SCP_BS-BS 033-Lokführer-Gruppe 33 RES"},
+    78: {"gruppe": "Gruppe 34 RES", "wochenschema": "SCP_BS-BS 034-Lokführer-Gruppe 34 RES"},
+}
+
+PLAN_AA = {
+    "version": 1,
+    "depot": "AA",
+    "jahr": 2026,
+    "gueltigVon": "2025-12-14",
+    "gueltigBis": "2026-12-12",
+}
+
+PAGES_AA = {
+    9: {"gruppe": "Gruppe 31 RES", "wochenschema": "SCP_AA-AA 031-Lokführer-Gruppe 31 RES"},
+    10: {"gruppe": "Gruppe 1", "wochenschema": "SCP_AA-AA 001-Lokführer-Gruppe 1"},
+}
+
+DEPOTS = {
+    "OL": {
+        PlanConst: PLAN_OL,
+        PagesConst: PAGES_OL,
+    },
+    "BS": {
+        PlanConst: PLAN_BS,
+        PagesConst: PAGES_BS,
+    },
+    "AA": {
+        PlanConst: PLAN_AA,
+        PagesConst: PAGES_AA,
+    }
 }
 
 # Oberkante der Datenzeilen; darueber stehen nur Kopf- und Summenzeilen.
@@ -110,7 +161,9 @@ def nr_column(page):
 
 def right_block_columns(page):
     """Die 8 Spalten (Woche + So..Sa) des rechten Blocks aus den Trennlinien."""
-    rules = vertical_rules(page, 600.0, 10_000.0)
+    # Untergrenze niedrig genug, weil die Blockbreite je nach Wochenanzahl und
+    # Depot leicht schwankt und der linke Blockrand sonst abgeschnitten wird.
+    rules = vertical_rules(page, 400.0, 10_000.0)
     if not rules:
         raise SystemExit("Rechter Block nicht gefunden: keine vertikalen Linien")
 
@@ -267,14 +320,14 @@ def dump(plan):
 
 
 def main():
-    if len(sys.argv) != 3:
+    if len(sys.argv) != 4:
         sys.exit(__doc__)
 
-    pdf_path, out_path = sys.argv[1], sys.argv[2]
+    pdf_path, out_path, depot = sys.argv[1], sys.argv[2], sys.argv[3]
     document = pymupdf.open(pdf_path)
 
     gruppen = []
-    for page_index, header in PAGES.items():
+    for page_index, header in DEPOTS[depot][PagesConst].items():
         zyklus, wochen = extract_group(document[page_index])
         gruppen.append({**header, "zyklusLaenge": zyklus, "wochen": wochen})
 
@@ -290,7 +343,7 @@ def main():
             f"  (mit der Kopfzeile der PDF-Seite vergleichen)"
         )
 
-    plan = {**PLAN, "gruppen": gruppen}
+    plan = {**DEPOTS[depot][PlanConst], "gruppen": gruppen}
     with open(out_path, "w", encoding="utf-8") as handle:
         handle.write(dump(plan))
 
