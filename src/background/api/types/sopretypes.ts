@@ -21,6 +21,8 @@ export enum SopreTourType {
 
 export enum SopreDepot {
 	OLTEN = 'OL',
+	BASEL = 'BS',
+	AARAU = 'AA',
 	UNBEKANNT = 'UNKNOWN'
 }
 

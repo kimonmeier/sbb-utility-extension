@@ -11,29 +11,36 @@
 
 	async function handleFileSelected(event: Event) {
 		const input = event.currentTarget as HTMLInputElement;
-		const file = input.files?.[0];
+		const files = input.files;
 		input.value = '';
-		if (!file) return;
+
+		if (!files || files.length === 0) return;
 
 		busy = true;
 		try {
-			const result = await sendWorkerDataMessage('INSERT_DB', 'IMPORT_JAHRESTOURENPLAN', {
-				json: await file.text()
-			});
-
-			if (result.success) {
-				alertQueue.queue({
-					type: 'success',
-					message: m.settings_jahrestourenplan_imported({ gruppen: result.gruppen ?? 0 })
-				});
-			} else {
-				alertQueue.queue({
-					type: 'error',
-					message: m.settings_jahrestourenplan_error({ error: result.error ?? '' })
-				});
+			for (const file of files) {
+				await importFile(file);
 			}
 		} finally {
 			busy = false;
+		}
+	}
+
+	async function importFile(file: File) {
+		const result = await sendWorkerDataMessage('INSERT_DB', 'IMPORT_JAHRESTOURENPLAN', {
+			json: await file.text()
+		});
+
+		if (result.success) {
+			alertQueue.queue({
+				type: 'success',
+				message: m.settings_jahrestourenplan_imported({ gruppen: result.gruppen ?? 0 })
+			});
+		} else {
+			alertQueue.queue({
+				type: 'error',
+				message: m.settings_jahrestourenplan_error({ error: result.error ?? '' })
+			});
 		}
 	}
 </script>
@@ -62,6 +69,7 @@
 	bind:this={fileInput}
 	type="file"
 	accept="application/json,.json"
+	multiple={true}
 	class="hidden"
 	onchange={handleFileSelected}
 />

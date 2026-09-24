@@ -9,9 +9,15 @@ import {
 import { parseZonedDateTime } from '$background/caluclations/date-helper';
 import { SopreDepot } from '$background/api/types/sopretypes';
 import oltenPlan2026 from '$background/data/jahrestourenplaene/olten-2026.json';
+import baselPlan2026 from '$background/data/jahrestourenplaene/basel-2026.json';
+import aargauPlan2026 from '$background/data/jahrestourenplaene/aarau-2026.json';
 
 /** Die im Repo mitgelieferten Plaene. */
-const GEBUENDELTE_PLAENE: JahrestourenplanDatei[] = [oltenPlan2026 as JahrestourenplanDatei];
+const GEBUENDELTE_PLAENE: JahrestourenplanDatei[] = [
+	oltenPlan2026 as JahrestourenplanDatei,
+	baselPlan2026 as JahrestourenplanDatei,
+	aargauPlan2026 as JahrestourenplanDatei
+];
 
 /**
  * Schreibt eine geprüfte Plandatei in die Datenbank. Idempotent: der Plankopf
