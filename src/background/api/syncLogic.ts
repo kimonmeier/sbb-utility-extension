@@ -158,6 +158,15 @@ async function processTourenData(
 			const tour = createBaseTour(item, userId);
 			const existingTour = existingTourenByDay.get(tour.datum.getTime());
 
+			// If the tour item has no abbreviation and the date is in the past the we keep the existing tour to avoid overwriting it with an unknown tour type. This is to prevent losing historical data.
+			if (
+				!item.abkuerzung &&
+				!item.tournummer &&
+				parseZonedDateTime(item.date) < new Date(Date.now())
+			) {
+				return existingTour ?? tour;
+			}
+
 			if (item.dayOff) {
 				tour.abkuerzung = parseTourType(item.abkuerzung!);
 				return tour;
